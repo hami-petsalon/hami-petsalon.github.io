@@ -1,1 +1,859 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hami 寵物美容｜寵物美容定型化契約</title>
 
+  <link rel="icon" type="image/png" href="./logo.png" />
+  <link rel="apple-touch-icon" href="./logo.png" />
+  <meta name="theme-color" content="#B9824F" />
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          hami: {
+            bg: "#fbf9f6",
+            surface: "#ffffff",
+            text: "#5D4D41",
+            muted: "#8D7E73",
+            primary: "#736357",      /* 主咖啡色 */
+            primaryDark: "#5D4D41",  /* 深咖啡 */
+            accent: "#F7E7B5",       /* 奶油黃 */
+            line: "#EEE7DB",
+            blue: "#DCE4EF",
+            pink: "#F7E7B5"
+          }
+        }
+      }
+    }
+  }
+</script>
+
+  <!-- Lucide -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+<style>
+:root{
+  --bg:#FFFDF8;
+  --surface:#ffffff;
+  --text:#5D4D41;
+  --muted:#8D7E73;
+  --primary:#E8D7A5;
+  --primary-dark:#DDBF74;
+  --accent:#F9EEC9;
+  --line:#EFE7D6;
+
+  --btn-h:46px;
+  --btn-r:14px;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  font-family:"Noto Sans TC",system-ui,-apple-system,sans-serif;
+  color:var(--text);
+  background:
+    radial-gradient(circle at 10% 8%, rgba(247,231,181,.30), transparent 35%),
+    radial-gradient(circle at 88% 10%, rgba(115,99,87,.10), transparent 30%),
+    linear-gradient(180deg,#FFFEFC 0%, var(--bg) 100%);
+}
+
+/* 容器 */
+.nav-shell{
+  background:rgba(255,255,255,.86);
+  border:1px solid var(--line);
+  border-radius:20px;
+  box-shadow:0 10px 24px rgba(93,77,65,.08);
+  backdrop-filter:blur(6px);
+}
+.card{
+  background:rgba(255,255,255,.94);
+  border:1px solid var(--line);
+  border-radius:22px;
+  box-shadow:0 10px 24px rgba(93,77,65,.07);
+}
+.section-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:900;
+  margin-bottom:14px;padding-left:10px;
+  border-left:4px solid var(--primary);
+}
+
+/* 輸入框 */
+.field{
+  width:100%;
+  border:1px solid #E7DED0;
+  background:#FFFEFC;
+  border-radius:14px;
+  padding:12px 13px;
+  font-size:14px;
+  color:var(--text);
+  outline:none;
+  transition:.2s ease;
+}
+.field::placeholder{color:#B8AAA0;}
+.field:hover{border-color:#DCCFB5;}
+.field:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 4px rgba(115,99,87,.14);
+  background:#fff;
+}
+
+/* 共用互動 */
+.chip,.tab-btn,.btn-primary,.btn-secondary,.btn-ghost,.service-mini,.service-card,.btn-danger-lite{
+  transition:.2s ease;
+}
+.chip:hover,.tab-btn:hover,.btn-primary:hover,.btn-secondary:hover,.btn-ghost:hover,.service-mini:hover,.service-card:hover{
+  transform:translateY(-1px);
+}
+.chip:active,.tab-btn:active,.btn-primary:active,.btn-secondary:active,.btn-ghost:active,.service-mini:active,.service-card:active{
+  transform:translateY(0);
+}
+
+/* chip */
+.chip{
+  min-height:var(--btn-h);
+  padding:12px 18px;
+  border-radius:var(--btn-r);
+  border:1.5px solid #E7DEC9;
+  background:#FFF9EA;
+  color:#6D5D4F;
+  font-size:15px;
+  font-weight:900;
+  line-height:1;
+  cursor:pointer;
+}
+.chip:hover{background:#FBEFCF;border-color:#DDCB98;}
+
+/* tab */
+.tab-btn{
+  min-height:42px;
+  padding:10px 16px;
+  border-radius:12px;
+  border:1.5px solid #E7DEC9;
+  background:#FFF9EA;
+  color:#6D5D4F;
+  font-size:14px;
+  font-weight:900;
+  white-space:nowrap;
+}
+.tab-btn:hover{background:#FBEFCF;border-color:#DDCB98;}
+
+.chip.active,.tab-btn.active{
+  color:#5D4D41;
+  border-color:#E0CA8F;
+  background:linear-gradient(180deg,#F6EBC6 0%, #E8D7A5 100%);
+  box-shadow:0 8px 16px rgba(186,160,95,.24);
+}
+
+/* 按鈕 */
+.btn-primary{
+  min-height:var(--btn-h);
+  border:1.5px solid #E0CA8F;
+  border-radius:var(--btn-r);
+  padding:12px 18px;
+  background:linear-gradient(180deg,#F6EBC6 0%, #E8D7A5 100%);
+  color:#5D4D41;
+  font-weight:900;
+  font-size:15px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:0 10px 18px rgba(186,160,95,.24);
+}
+.btn-primary:hover{background:linear-gradient(180deg,#F2E2AE 0%, #DDBF74 100%);}
+
+.btn-secondary{
+  min-height:var(--btn-h);
+  border:1.5px solid #E8DDAF;
+  border-radius:var(--btn-r);
+  padding:12px 16px;
+  background:#FFF9E8;
+  color:#6F604E;
+  font-size:14px;
+  font-weight:900;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-secondary:hover{background:#FBEFCA;border-color:#E2D29A;}
+
+.btn-ghost{
+  min-height:var(--btn-h);
+  border:1.5px solid #E9E1D4;
+  border-radius:var(--btn-r);
+  padding:12px 16px;
+  background:#FFFEFB;
+  color:#7D6F62;
+  font-size:14px;
+  font-weight:900;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-ghost:hover{background:#F8F4EC;}
+
+.btn-danger-lite{
+  min-height:38px;
+  padding:8px 10px;
+  border-radius:10px;
+  border:1.5px solid #F2C9C9;
+  background:#FFF5F5;
+  color:#9A4E4E;
+  font-size:12px;
+  font-weight:900;
+}
+
+/* 服務區 */
+.service-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+}
+.service-card{
+  width:100%;
+  min-height:106px;
+  text-align:left;
+  padding:16px;
+  border:2px solid #E7DEC9;
+  border-radius:16px;
+  background:#FFFDF7;
+  cursor:pointer;
+}
+.service-card .title{font-size:16px;font-weight:900;color:#5D4D41;}
+.service-card .desc{font-size:12px;font-weight:700;color:#8D7E73;margin-top:6px;line-height:1.45;}
+.service-card:hover{border-color:#DDCB98;background:#FFF7E5;}
+.service-card.active{
+  border-color:#E0CA8F;
+  background:linear-gradient(180deg,#F6EBC6 0%, #E8D7A5 100%);
+  box-shadow:0 8px 16px rgba(186,160,95,.24);
+}
+
+.service-mini{
+  min-height:var(--btn-h);
+  width:100%;
+  padding:12px 10px;
+  border-radius:12px;
+  border:1.5px solid #E7DEC9;
+  background:#FFF9EA;
+  color:#6D5D4F;
+  font-size:14px;
+  font-weight:900;
+  text-align:center;
+  cursor:pointer;
+}
+.service-mini:hover{border-color:#DDCB98;background:#FBEFCF;}
+.service-mini.active{
+  color:#5D4D41;
+  border-color:#E0CA8F;
+  background:linear-gradient(180deg,#F6EBC6 0%, #E8D7A5 100%);
+  box-shadow:0 8px 16px rgba(186,160,95,.24);
+}
+
+/* modal */
+.modal-panel{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:20px;
+  overflow:hidden;
+  box-shadow:0 20px 40px rgba(50,33,20,.20);
+}
+
+/* 簽名預覽盒 */
+.signature-box{
+  border:2px dashed #E7DEC9;
+  border-radius:16px;
+  background:#fff;
+  min-height:180px;
+  padding:12px;
+  cursor:pointer;
+  transition:.2s ease;
+}
+.signature-box:hover{
+  border-color:#DDBF74;
+  background:#FFFCF4;
+}
+.signature-empty{
+  height:150px;
+  border-radius:12px;
+  background:#FFF9F2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#A59386;
+  font-size:12px;
+  font-weight:900;
+}
+.signature-preview-img{
+  width:100%;
+  max-height:150px;
+  object-fit:contain;
+  border-radius:12px;
+  background:#FFF9F2;
+}
+
+/* 全螢幕簽名 modal */
+#signatureModal{
+  position:fixed;
+  inset:0;
+  z-index:80;
+  background:#F9F7F2;
+  display:flex;
+  flex-direction:column;
+}
+#signatureModal.hidden{display:none;}
+.sig-top{
+  padding:12px 14px;
+  background:linear-gradient(180deg,#F6EBC6 0%, #E8D7A5 100%);
+  border-bottom:1px solid #E7DEC9;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.sig-stage{
+  flex:1;
+  padding:10px;
+  background:#F9F7F2;
+}
+#signatureCanvasFull{
+  width:100%;
+  height:100%;
+  display:block;
+  border-radius:14px;
+  border:1.5px solid #E7DEC9;
+  background:#FFF9F2;
+  touch-action:none;
+}
+.sig-actions{
+  padding:12px;
+  border-top:1px solid #E7DEC9;
+  background:#fff;
+  display:flex;
+  gap:10px;
+}
+
+::-webkit-scrollbar{height:8px;width:8px;}
+::-webkit-scrollbar-thumb{background:#E3D3C6;border-radius:99px;}
+::-webkit-scrollbar-track{background:transparent;}
+</style>
+  <!-- React CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body class="min-h-screen pb-20">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useMemo, useRef, useState, useEffect } = React;
+
+    function createEmptyPet() {
+      return {
+        pet_name:"",
+        pet_type:"",
+        pet_breed:"",
+        pet_color:"",
+        pet_chip_no:"",
+        pet_chip_status:"",
+        pet_sex:"",
+        pet_neuter:"",
+        pet_friendly_human:"",
+        pet_friendly_dog:"",
+        pet_aggressive:"",
+        pet_medical_history:"",
+        service_type:"",
+        service_type_other:"",
+        pickup_time:"",
+        service_amount:"0",
+        grooming_date:"",
+        pet_note:""
+      };
+    }
+
+    const DEMO_HISTORY = [
+      {
+        owner_name:"王小明", owner_phone:"0912345678", owner_email:"dog@mail.com", owner_address:"台中市西屯區",
+        owner_id:"A123456789", emergency_name:"王大明", emergency_phone:"0911222333", preferred_hospital:"",
+        pets:[{ pet_name:"布丁", pet_breed:"柯基", pet_type:"狗狗", pet_sex:"公", service_type:"精緻美容", grooming_date:"2026-03-10", pet_note:"怕剪指甲" }]
+      }
+    ];
+
+    function getSavedRecords(){ return JSON.parse(localStorage.getItem("hami_records") || "[]"); }
+    function saveRecord(record){
+      const rows = getSavedRecords();
+      rows.unshift({ ...record, created_at:new Date().toISOString() });
+      localStorage.setItem("hami_records", JSON.stringify(rows));
+    }
+
+    function formatSignTime(d){
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,'0');
+      const day = String(d.getDate()).padStart(2,'0');
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+      return `${y}/${m}/${day} ${hh}:${mm}`;
+    }
+
+    function App(){
+      const [owner, setOwner] = useState({
+        owner_name:"", owner_phone:"", owner_email:"", owner_id:"",
+        owner_address:"", emergency_name:"", emergency_phone:"", preferred_hospital:""
+      });
+
+      const [pets, setPets] = useState([createEmptyPet()]);
+      const [currentPetIndex, setCurrentPetIndex] = useState(0);
+
+      const [agreeTerms, setAgreeTerms] = useState(false);
+      const [termsOpen, setTermsOpen] = useState(false);
+
+      const [historyOpen, setHistoryOpen] = useState(false);
+      const [foundHistory, setFoundHistory] = useState([]);
+      const [selectedHistoryIdx, setSelectedHistoryIdx] = useState([]);
+
+      const [sigModalOpen, setSigModalOpen] = useState(false);
+      const [signatureData, setSignatureData] = useState("");
+      const [signTime, setSignTime] = useState("--");
+
+      const canvasRef = useRef(null);
+      const ctxRef = useRef(null);
+      const drawingRef = useRef(false);
+      const hasSignRef = useRef(false);
+
+      const p = useMemo(()=>pets[currentPetIndex], [pets, currentPetIndex]);
+
+      useEffect(()=>{
+        if(!sigModalOpen) return;
+        const canvas = canvasRef.current;
+        const ratio = window.devicePixelRatio || 1;
+        const rect = canvas.getBoundingClientRect();
+
+        canvas.width = Math.max(1, rect.width * ratio);
+        canvas.height = Math.max(1, rect.height * ratio);
+
+        const ctx = canvas.getContext("2d");
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.scale(ratio, ratio);
+        ctx.lineWidth = 2.6;
+        ctx.lineCap = "round";
+        ctx.strokeStyle = "#4A3426";
+        ctx.fillStyle = "#FFF9F2";
+        ctx.fillRect(0,0,rect.width,rect.height);
+
+        ctxRef.current = ctx;
+        drawingRef.current = false;
+        hasSignRef.current = false;
+
+        const getPos = (e)=>{
+          const r = canvas.getBoundingClientRect();
+          return { x:e.clientX-r.left, y:e.clientY-r.top };
+        };
+
+        const onDown = (e)=>{
+          e.preventDefault();
+          drawingRef.current = true;
+          hasSignRef.current = true;
+          const pos = getPos(e);
+          ctx.beginPath();
+          ctx.moveTo(pos.x,pos.y);
+        };
+        const onMove = (e)=>{
+          if(!drawingRef.current) return;
+          e.preventDefault();
+          const pos = getPos(e);
+          ctx.lineTo(pos.x,pos.y);
+          ctx.stroke();
+        };
+        const onUp = ()=>{ drawingRef.current = false; };
+
+        canvas.addEventListener("pointerdown", onDown);
+        canvas.addEventListener("pointermove", onMove);
+        window.addEventListener("pointerup", onUp);
+
+        return ()=>{
+          canvas.removeEventListener("pointerdown", onDown);
+          canvas.removeEventListener("pointermove", onMove);
+          window.removeEventListener("pointerup", onUp);
+        };
+      }, [sigModalOpen]);
+
+      const patchCurrentPet = (patch)=>{
+        setPets(prev=>{
+          const next = [...prev];
+          next[currentPetIndex] = { ...next[currentPetIndex], ...patch };
+          return next;
+        });
+      };
+
+      const addPet = ()=>{
+        setPets(prev=>[...prev, createEmptyPet()]);
+        setCurrentPetIndex(pets.length);
+      };
+
+      const delPet = (idx)=>{
+        if(pets.length===1) return;
+        const next = pets.filter((_,i)=>i!==idx);
+        setPets(next);
+        setCurrentPetIndex(Math.max(0, Math.min(currentPetIndex, next.length-1)));
+      };
+
+      const openSignatureModal = ()=> setSigModalOpen(true);
+      const closeSignatureModal = ()=> setSigModalOpen(false);
+
+      const clearFullSignaturePad = ()=>{
+        const canvas = canvasRef.current;
+        const ctx = ctxRef.current;
+        if(!canvas || !ctx) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.fillStyle = "#FFF9F2";
+        ctx.fillRect(0,0,rect.width,rect.height);
+        hasSignRef.current = false;
+      };
+
+      const confirmSignature = ()=>{
+        if(!hasSignRef.current) return alert("請先簽名再確認");
+        const data = canvasRef.current.toDataURL("image/png");
+        setSignatureData(data);
+        setSignTime(formatSignTime(new Date()));
+        setSigModalOpen(false);
+      };
+
+      const clearSignature = ()=>{
+        setSignatureData("");
+        setSignTime("--");
+        hasSignRef.current = false;
+      };
+
+      const onSearchHistory = ()=>{
+        const phone = owner.owner_phone.trim();
+        if(!/^09\d{8}$/.test(phone)) return alert("請輸入正確手機格式：09xxxxxxxx");
+        const all = [...getSavedRecords(), ...DEMO_HISTORY];
+        const found = all.filter(r => (r.owner_phone || r.owner?.owner_phone) === phone);
+        if(!found.length) return alert("查無舊客資料");
+        setFoundHistory(found);
+        setSelectedHistoryIdx([]);
+        setHistoryOpen(true);
+      };
+
+      const applyOwnerOnly = ()=>{
+        if(!foundHistory.length) return;
+        const r = foundHistory[0];
+        const o = r.owner || r;
+        setOwner({
+          owner_name:o.owner_name || "",
+          owner_phone:o.owner_phone || "",
+          owner_email:o.owner_email || "",
+          owner_id:o.owner_id || "",
+          owner_address:o.owner_address || "",
+          emergency_name:o.emergency_name || "",
+          emergency_phone:o.emergency_phone || "",
+          preferred_hospital:o.preferred_hospital || ""
+        });
+        setHistoryOpen(false);
+      };
+
+      const applySelectedPets = ()=>{
+        if(!selectedHistoryIdx.length) return alert("請至少勾選一筆");
+        const base = foundHistory[selectedHistoryIdx[0]];
+        const o = base.owner || base;
+        setOwner({
+          owner_name:o.owner_name || "",
+          owner_phone:o.owner_phone || "",
+          owner_email:o.owner_email || "",
+          owner_id:o.owner_id || "",
+          owner_address:o.owner_address || "",
+          emergency_name:o.emergency_name || "",
+          emergency_phone:o.emergency_phone || "",
+          preferred_hospital:o.preferred_hospital || ""
+        });
+
+        const mergedPets = [];
+        selectedHistoryIdx.forEach(i=>{
+          (foundHistory[i].pets || []).forEach(pp=>mergedPets.push({ ...createEmptyPet(), ...pp }));
+        });
+        setPets(mergedPets.length ? mergedPets : [createEmptyPet()]);
+        setCurrentPetIndex(0);
+        setHistoryOpen(false);
+      };
+
+      const onSubmit = ()=>{
+        const emailOK = /^\S+@\S+\.\S+$/.test(owner.owner_email.trim());
+        const phoneOK = /^09\d{8}$/.test(owner.owner_phone.trim());
+        const idOK = /^[A-Z][12]\d{8}$/.test(owner.owner_id.trim().toUpperCase());
+        const emergencyPhoneOK = owner.emergency_phone ? /^09\d{8}$/.test(owner.emergency_phone.trim()) : true;
+
+        if(!owner.owner_name.trim()) return alert("請填寫飼主姓名");
+        if(!emailOK) return alert("請填寫正確 Email");
+        if(!phoneOK) return alert("聯絡手機格式應為 09xxxxxxxx");
+        if(!idOK) return alert("身分證字號格式錯誤");
+        if(!owner.owner_address.trim()) return alert("請填寫通訊地址");
+        if(!owner.emergency_name.trim()) return alert("請填寫緊急聯絡人");
+        if(!emergencyPhoneOK) return alert("緊急電話格式不符");
+
+        for(let i=0;i<pets.length;i++){
+          const x = pets[i];
+          if(!x.pet_type) return alert(`第 ${i+1} 隻毛孩：請選擇狗狗或貓咪`);
+          if(!x.pet_chip_no && !x.pet_chip_status) return alert(`第 ${i+1} 隻毛孩：請填寫晶片號碼或選擇晶片狀態`);
+          if(x.pet_chip_no && !/^(\d{10}|\d{15})$/.test(x.pet_chip_no)) return alert(`第 ${i+1} 隻毛孩：晶片號碼須為10碼或15碼數字`);
+          if(!x.pet_sex) return alert(`第 ${i+1} 隻毛孩：請選擇性別`);
+          if(!x.pet_neuter) return alert(`第 ${i+1} 隻毛孩：請選擇結紮`);
+          if(!x.pet_friendly_human) return alert(`第 ${i+1} 隻毛孩：請選擇是否親人`);
+          if(!x.pet_friendly_dog) return alert(`第 ${i+1} 隻毛孩：請選擇是否親狗`);
+          if(!x.pet_aggressive) return alert(`第 ${i+1} 隻毛孩：請選擇是否具攻擊性`);
+          if(!x.pet_medical_history) return alert(`第 ${i+1} 隻毛孩：請選擇過往病史`);
+          if(!x.service_type) return alert(`第 ${i+1} 隻毛孩：請選擇服務項目`);
+          if(x.service_type==="其他項目" && !x.service_type_other) return alert(`第 ${i+1} 隻毛孩：請填寫其他項目說明`);
+          if(!x.pickup_time) return alert(`第 ${i+1} 隻毛孩：請填寫預計接回時間`);
+          if(x.service_amount==="" || Number(x.service_amount)<0) return alert(`第 ${i+1} 隻毛孩：請填寫正確金額`);
+        }
+
+        if(!agreeTerms) return alert("請勾選：我已詳閱並同意以上契約條款內容");
+        if(!signatureData) return alert("請先完成簽名");
+
+        const payload = {
+          owner:{
+            ...owner,
+            owner_id: owner.owner_id.trim().toUpperCase()
+          },
+          pets,
+          signature: signatureData,
+          sign_time: signTime,
+          created_at:new Date().toISOString()
+        };
+        saveRecord(payload);
+        alert("✅ React 版送出成功（已存 localStorage）");
+        console.log("Hami Contract Payload:", payload);
+      };
+
+      const Chip = ({field,value,label})=>(
+        <button
+          type="button"
+          className={`chip ${p[field]===value ? "active" : ""}`}
+          onClick={()=>patchCurrentPet({[field]:value})}
+        >{label}</button>
+      );
+
+      return (
+        <>
+          <header className="sticky top-0 z-40 p-3 md:p-4">
+            <div className="max-w-4xl mx-auto nav-shell rounded-2xl px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <img src="./logo.png" alt="Hami logo" className="w-10 h-10 object-contain rounded-full bg-white/70 p-1" />
+                <div>
+                  <h1 className="font-black text-sm md:text-base tracking-wide">Hami 寵物美容</h1>
+                  <p className="text-[11px] text-hami-muted/90">寵物美容定型化契約（React）</p>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <main className="max-w-4xl mx-auto px-3 space-y-5">
+            <section className="card p-5">
+              <h2 className="section-title">一、飼主基本資料</h2>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold">飼主姓名 *</label>
+                  <input className="field" value={owner.owner_name} onChange={e=>setOwner({...owner, owner_name:e.target.value})}/>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">電子信箱 *</label>
+                  <input className="field" value={owner.owner_email} onChange={e=>setOwner({...owner, owner_email:e.target.value})}/>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">聯絡手機 *</label>
+                  <div className="flex gap-2">
+                    <input className="field" value={owner.owner_phone} onChange={e=>setOwner({...owner, owner_phone:e.target.value})}/>
+                    <button className="btn-secondary" type="button" onClick={onSearchHistory}>舊客</button>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">身分證字號 *</label>
+                  <input className="field" value={owner.owner_id} onChange={e=>setOwner({...owner, owner_id:e.target.value})}/>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">通訊地址 *</label>
+                  <input className="field" value={owner.owner_address} onChange={e=>setOwner({...owner, owner_address:e.target.value})}/>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">緊急聯絡人 *</label>
+                  <input className="field" value={owner.emergency_name} onChange={e=>setOwner({...owner, emergency_name:e.target.value})}/>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">緊急電話</label>
+                  <input className="field" value={owner.emergency_phone} onChange={e=>setOwner({...owner, emergency_phone:e.target.value})}/>
+                </div>
+                <div>
+                  <label className="text-xs font-bold">指定就醫醫院(如無則由店家指定)</label>
+                  <input className="field" value={owner.preferred_hospital} onChange={e=>setOwner({...owner, preferred_hospital:e.target.value})}/>
+                </div>
+              </div>
+            </section>
+
+            <section className="card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="section-title !mb-0">二、寵物詳細資料</h2>
+                <button className="btn-primary" type="button" onClick={addPet}>新增毛孩</button>
+              </div>
+
+              <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
+                {pets.map((x,idx)=>(
+                  <div key={idx} className="flex items-center gap-1">
+                    <button className={`tab-btn ${idx===currentPetIndex ? "active":""}`} onClick={()=>setCurrentPetIndex(idx)} type="button">
+                      {x.pet_name || `寵物 ${idx+1}`}
+                    </button>
+                    {pets.length>1 && <button className="btn-danger-lite" onClick={()=>delPet(idx)} type="button">刪</button>}
+                  </div>
+                ))}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="md:col-span-2">
+                  <label className="text-xs font-bold">種類 *</label>
+                  <div className="flex gap-2 mt-2">
+                    <Chip field="pet_type" value="狗狗" label="🐶 狗狗"/>
+                    <Chip field="pet_type" value="貓咪" label="🐱 貓咪"/>
+                  </div>
+                </div>
+
+                <div><label className="text-xs font-bold">寵物名字 *</label><input className="field" value={p.pet_name} onChange={e=>patchCurrentPet({pet_name:e.target.value})}/></div>
+                <div><label className="text-xs font-bold">品種</label><input className="field" value={p.pet_breed} onChange={e=>patchCurrentPet({pet_breed:e.target.value})}/></div>
+                <div><label className="text-xs font-bold">花色</label><input className="field" value={p.pet_color} onChange={e=>patchCurrentPet({pet_color:e.target.value})}/></div>
+                <div><label className="text-xs font-bold">晶片號碼</label><input className="field" value={p.pet_chip_no} onChange={e=>patchCurrentPet({pet_chip_no:e.target.value})}/></div>
+
+                <div><label className="text-xs font-bold">性別</label><div className="flex gap-2 mt-2"><Chip field="pet_sex" value="公" label="公"/><Chip field="pet_sex" value="母" label="母"/></div></div>
+                <div><label className="text-xs font-bold">結紮</label><div className="flex gap-2 mt-2"><Chip field="pet_neuter" value="是" label="是"/><Chip field="pet_neuter" value="否" label="否"/></div></div>
+
+                <div><label className="text-xs font-bold">親人</label><div className="flex gap-2 mt-2"><Chip field="pet_friendly_human" value="是" label="是"/><Chip field="pet_friendly_human" value="否" label="否"/></div></div>
+                <div><label className="text-xs font-bold">親狗</label><div className="flex gap-2 mt-2"><Chip field="pet_friendly_dog" value="是" label="是"/><Chip field="pet_friendly_dog" value="否" label="否"/></div></div>
+                <div><label className="text-xs font-bold">具攻擊性</label><div className="flex gap-2 mt-2"><Chip field="pet_aggressive" value="是" label="是"/><Chip field="pet_aggressive" value="否" label="否"/></div></div>
+                <div><label className="text-xs font-bold">過往病史</label><div className="flex gap-2 mt-2"><Chip field="pet_medical_history" value="有" label="有"/><Chip field="pet_medical_history" value="無" label="無"/></div></div>
+
+                <div className="md:col-span-2"><label className="text-xs font-bold">請說明過往病史(如有)</label><input className="field" value={p.pet_note} onChange={e=>patchCurrentPet({pet_note:e.target.value})}/></div>
+              </div>
+            </section>
+
+            <section className="card p-5">
+              <h2 className="section-title">三、本次服務內容</h2>
+
+              <div className="service-grid mt-2 mb-3">
+                <button type="button" className={`service-card ${p.service_type==="基礎洗澡"?"active":""}`} onClick={()=>patchCurrentPet({service_type:"基礎洗澡"})}>
+                  <div className="title">💧 基礎洗澡</div>
+                  <div className="desc">二次洗毛+潤絲 · 剪指甲 · 清耳朵 · 剃腳底/肚子/肛門毛 · 擠肛門腺 · 眼部小修</div>
+                </button>
+                <button type="button" className={`service-card ${p.service_type==="精緻美容"?"active":""}`} onClick={()=>patchCurrentPet({service_type:"精緻美容"})}>
+                  <div className="title">✨ 精緻美容</div>
+                  <div className="desc">基礎洗澡 + 造型修剪</div>
+                </button>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+                {["局部修剪","儲值洗澡","精緻去油 SPA","臭氧水 SPA","其他項目"].map(v=>(
+                  <button key={v} type="button" className={`service-mini ${p.service_type===v?"active":""}`} onClick={()=>patchCurrentPet({service_type:v})}>{v}</button>
+                ))}
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <div><label className="text-xs font-bold">其他項目說明</label><input className="field" value={p.service_type_other} onChange={e=>patchCurrentPet({service_type_other:e.target.value})}/></div>
+              </div>
+            </section>
+
+            <section className="card p-5 space-y-3">
+              <h2 className="section-title">五、簽署聲明與法律約定</h2>
+              <button className="btn-secondary w-full justify-center" type="button" onClick={()=>setTermsOpen(true)}>閱覽完整寵物美容定型化契約條款</button>
+              <label className="flex items-start gap-2 mt-2">
+                <input type="checkbox" className="w-4 h-4 mt-1" checked={agreeTerms} onChange={e=>setAgreeTerms(e.target.checked)} />
+                <span className="text-sm font-bold">我已詳閱並同意以上契約條款內容 *</span>
+              </label>
+            </section>
+
+            <section className="card p-5 space-y-3">
+              <h2 className="section-title">六、甲方電子簽署</h2>
+              <p className="text-xs text-hami-muted font-bold">點擊下方簽名區塊即可開啟全螢幕簽名板</p>
+
+              <div className="signature-box" onClick={openSignatureModal}>
+                {!signatureData
+                  ? <div className="signature-empty">點擊此處開始簽名</div>
+                  : <img src={signatureData} className="signature-preview-img" alt="簽名預覽" />
+                }
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button className="btn-ghost" type="button" onClick={clearSignature}>重簽</button>
+                <span className="text-xs font-bold text-hami-muted">簽署時間：{signTime}</span>
+              </div>
+
+              <button className="btn-primary w-full py-3 text-sm" type="button" onClick={onSubmit}>確認送出</button>
+            </section>
+          </main>
+
+          {termsOpen && (
+            <div className="fixed inset-0 z-[60] bg-black/45 p-4" onClick={()=>setTermsOpen(false)}>
+              <div className="max-w-2xl mx-auto mt-6 modal-panel bg-white flex flex-col max-h-[88vh]" onClick={e=>e.stopPropagation()}>
+                <div className="bg-gradient-to-r from-[#F6EBC6] to-[#E8D7A5] text-[#5D4D41] px-4 py-3 font-black text-sm flex items-center justify-between">
+                  <div>寵物美容定型化契約條款（確認版）</div>
+                  <button className="text-xs font-black px-2 py-1 rounded hover:bg-white/40" onClick={()=>setTermsOpen(false)}>關閉</button>
+                </div>
+                <div className="p-4 space-y-3 overflow-y-auto text-sm leading-6 text-[#5D4D41]">
+                  <p className="font-bold">第一條（契約目的）</p><p>本段條款內容待確認。</p>
+                  <p className="font-bold">第五條（健康告知）</p><p>本段條款內容待確認。</p>
+                  <p className="font-bold">第九條（退費規定）</p><p>本段條款內容待確認。</p>
+                </div>
+                <div className="p-4 border-t border-hami-line flex gap-2">
+                  <button className="btn-primary flex-1 justify-center" onClick={()=>{setAgreeTerms(true);setTermsOpen(false);}}>我已閱覽條款</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {historyOpen && (
+            <div className="fixed inset-0 z-50 bg-black/45 p-4" onClick={()=>setHistoryOpen(false)}>
+              <div className="max-w-md mx-auto mt-16 modal-panel" onClick={e=>e.stopPropagation()}>
+                <div className="bg-gradient-to-r from-[#F6EBC6] to-[#E8D7A5] text-[#5D4D41] px-4 py-3 font-black text-sm">找到舊客資料</div>
+                <div className="p-4 space-y-2 max-h-[55vh] overflow-auto">
+                  {foundHistory.map((r,idx)=>(
+                    <label key={idx} className="rounded-xl border border-hami-line bg-[#FFFBF6] p-3 flex items-start gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedHistoryIdx.includes(idx)}
+                        onChange={(e)=>{
+                          if(e.target.checked) setSelectedHistoryIdx(prev=>[...prev, idx]);
+                          else setSelectedHistoryIdx(prev=>prev.filter(x=>x!==idx));
+                        }}
+                      />
+                      <div>
+                        <p className="font-black text-sm">{(r.owner_name||r.owner?.owner_name||"")}｜{(r.owner_phone||r.owner?.owner_phone||"")}</p>
+                        <p className="text-xs text-hami-muted">毛孩：{(r.pets||[]).map(x=>x.pet_name).join("、") || "無"}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+                <div className="p-4 border-t border-hami-line flex gap-2">
+                  <button className="flex-1 btn-secondary py-2 text-sm justify-center" onClick={applyOwnerOnly}>只帶入飼主</button>
+                  <button className="flex-1 btn-primary py-2 text-sm justify-center" onClick={applySelectedPets}>帶入勾選毛孩</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {sigModalOpen && (
+            <div id="signatureModal">
+              <div className="sig-top">
+                <div className="font-black text-sm text-[#5D4D41]">全螢幕簽名板</div>
+                <button type="button" className="text-xs font-black px-3 py-1 rounded bg-white/70 text-[#5D4D41]" onClick={closeSignatureModal}>關閉</button>
+              </div>
+              <div className="sig-stage">
+                <canvas id="signatureCanvasFull" ref={canvasRef}></canvas>
+              </div>
+              <div className="sig-actions">
+                <button type="button" className="btn-ghost flex-1 justify-center" onClick={clearFullSignaturePad}>清空</button>
+                <button type="button" className="btn-primary flex-1 justify-center" onClick={confirmSignature}>確認簽名</button>
+              </div>
+            </div>
+          )}
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
