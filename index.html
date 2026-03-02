@@ -364,79 +364,91 @@
 <body class="min-h-screen pb-20">
   <div id="root"></div>
 
-  <script>
-    (function () {
-      if (!("serviceWorker" in navigator)) return;
+<script>
+  (function () {
+    if (!("serviceWorker" in navigator)) return;
 
-      // 每次你上版可以改這個字串，強制檢查最新版
-      const SW_VERSION = "v=2";
-      const SW_URL = `./sw.js?${SW_VERSION}`;
+    // ===== 以後只改這一行，搜尋 v= 改數字即可 =====
+    const SW_URL_FIXED = "./sw.js?v=3";
 
-      let isRefreshing = false;
+    // 從上面網址自動抓版本（不要再手改第二個地方）
+    const APP_VERSION =
+      new URL(SW_URL_FIXED, window.location.href).searchParams.get("v") || "0";
 
-      function forceActivate(registration) {
-        if (registration && registration.waiting) {
-          registration.waiting.postMessage({ type: "SKIP_WAITING" });
-        }
+    let isRefreshing = false;
+
+    // LINE 同網址快取重，版本變更時自動補上 ?v=xxx 後重導一次
+    const verKey = "__hami_app_version__";
+    const savedVer = localStorage.getItem(verKey);
+    if (savedVer !== APP_VERSION) {
+      localStorage.setItem(verKey, APP_VERSION);
+      const u = new URL(window.location.href);
+      u.searchParams.set("v", APP_VERSION);
+      if (u.href !== window.location.href) {
+        window.location.replace(u.href);
+        return;
+      }
+    }
+
+    function forceActivate(registration) {
+      if (registration && registration.waiting) {
+        registration.waiting.postMessage({ type: "SKIP_WAITING" });
+      }
+    }
+
+    function listenForWaitingServiceWorker(registration) {
+      if (!registration) return;
+
+      if (registration.waiting) {
+        forceActivate(registration);
+        return;
       }
 
-      function listenForWaitingServiceWorker(registration) {
-        if (!registration) return;
+      registration.addEventListener("updatefound", () => {
+        const newWorker = registration.installing;
+        if (!newWorker) return;
 
-        // 已有 waiting worker（代表有新版本）
-        if (registration.waiting) {
-          forceActivate(registration);
-          return;
-        }
-
-        // 監聽更新流程
-        registration.addEventListener("updatefound", () => {
-          const newWorker = registration.installing;
-          if (!newWorker) return;
-
-          newWorker.addEventListener("statechange", () => {
-            // installed + 有 controller => 代表是更新不是首次安裝
-            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-              forceActivate(registration);
-            }
-          });
+        newWorker.addEventListener("statechange", () => {
+          if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+            forceActivate(registration);
+          }
         });
+      });
+    }
+
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      if (isRefreshing) return;
+      isRefreshing = true;
+      window.location.reload();
+    });
+
+    window.addEventListener("load", async () => {
+      try {
+        const registration = await navigator.serviceWorker.register(SW_URL_FIXED, {
+          updateViaCache: "none"
+        });
+
+        listenForWaitingServiceWorker(registration);
+
+        registration.update();
+
+        setInterval(() => {
+          registration.update();
+        }, 30000);
+
+        document.addEventListener("visibilitychange", () => {
+          if (document.visibilityState === "visible") registration.update();
+        });
+
+        window.addEventListener("online", () => {
+          registration.update();
+        });
+      } catch (err) {
+        console.error("Service Worker 註冊失敗：", err);
       }
-
-      // 一旦新 SW 接管頁面就自動刷新
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        if (isRefreshing) return;
-        isRefreshing = true;
-        window.location.reload();
-      });
-
-      window.addEventListener("load", async () => {
-        try {
-          const registration = await navigator.serviceWorker.register(SW_URL);
-          listenForWaitingServiceWorker(registration);
-
-          // 定期檢查更新（60 秒）
-          setInterval(() => {
-            registration.update();
-          }, 60000);
-
-          // 回到頁面時也檢查一次
-          document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") {
-              registration.update();
-            }
-          });
-
-          // 網路恢復時檢查更新
-          window.addEventListener("online", () => {
-            registration.update();
-          });
-        } catch (err) {
-          console.error("Service Worker 註冊失敗：", err);
-        }
-      });
-    })();
-  </script>
+    });
+  })();
+</script>
 
   <script type="text/babel">
     const { useMemo, useRef, useState, useEffect } = React;
@@ -596,17 +608,43 @@ useEffect(() => {
   const el = termsBodyRef.current;
   if (!el) return;
 
-  const checkBottom = () => {
+  let raf1 = 0;
+  let raf2 = 0;
+
+  const recalc = () => {
+    // 內容是否需要捲動
+    const overflow = el.scrollHeight > el.clientHeight + 2;
+
+    // 如果內容本來就不需要捲動，直接允許同意（避免大螢幕卡住）
+    if (!overflow) {
+      setTermsCanAgree(true);
+      return;
+    }
+
+    // 需要捲動時，必須到底才允許
     const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
     setTermsCanAgree(nearBottom);
   };
 
-  // 每次打開先重算
+  // 先鎖住，避免剛開啟瞬間沿用上一次 true
   setTermsCanAgree(false);
-  checkBottom();
 
-  el.addEventListener("scroll", checkBottom);
-  return () => el.removeEventListener("scroll", checkBottom);
+  // 等 modal 版面完成後再計算（避免初次高度未穩定）
+  raf1 = requestAnimationFrame(() => {
+    raf2 = requestAnimationFrame(() => {
+      recalc();
+    });
+  });
+
+  el.addEventListener("scroll", recalc, { passive: true });
+  window.addEventListener("resize", recalc);
+
+  return () => {
+    if (raf1) cancelAnimationFrame(raf1);
+    if (raf2) cancelAnimationFrame(raf2);
+    el.removeEventListener("scroll", recalc);
+    window.removeEventListener("resize", recalc);
+  };
 }, [termsOpen]);
 
       useEffect(() => {
@@ -1447,7 +1485,10 @@ setSignatureData("");
 
 <button
   type="button"
-  onClick={() => setTermsOpen(true)}
+  onClick={() => {
+  setTermsCanAgree(false);
+  setTermsOpen(true);
+}}
   className="w-full rounded-2xl border-2 border-[#E8DDAF] bg-[#FFFBF2] px-4 py-4 text-left hover:bg-[#FFF7E8]"
 >
   <div className="flex items-center justify-between gap-3">

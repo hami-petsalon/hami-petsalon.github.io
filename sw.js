@@ -1,7 +1,5 @@
-/* sw.js - Hami PWA Service Worker */
-const CACHE_VERSION = "hami-v20260302-1";
-const STATIC_CACHE = `static-${CACHE_VERSION}`;
-const RUNTIME_CACHE = `runtime-${CACHE_VERSION}`;
+const SW_VERSION = new URL(self.location.href).searchParams.get("v") || "0";
+const CACHE_NAME = `hami-cache-v${SW_VERSION}`;
 
 const PRECACHE_URLS = [
   "./",
@@ -9,26 +7,23 @@ const PRECACHE_URLS = [
   "./logo.png"
 ];
 
-// 安裝：預先快取
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(STATIC_CACHE).then((cache) => {
-      return cache.addAll(PRECACHE_URLS);
-    })
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(PRECACHE_URLS);
+      await self.skipWaiting();
+    })()
   );
-  self.skipWaiting();
 });
 
-// 啟用：清除舊快取
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     (async () => {
-      const keys = await caches.keys();
+      const names = await caches.keys();
       await Promise.all(
-        keys.map((key) => {
-          if (key !== STATIC_CACHE && key !== RUNTIME_CACHE) {
-            return caches.delete(key);
-          }
+        names.map((name) => {
+          if (name !== CACHE_NAME) return caches.delete(name);
         })
       );
       await self.clients.claim();
@@ -36,78 +31,61 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// 讓前端可主動觸發更新
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
 });
 
-// 抓取策略
+// 導航請求：Network First（優先拿最新 index.html）
 self.addEventListener("fetch", (event) => {
-  const request = event.request;
-  if (request.method !== "GET") return;
+  const req = event.request;
+  const url = new URL(req.url);
 
-  const url = new URL(request.url);
+  if (url.origin !== self.location.origin) return;
 
-  // 只處理 http/https
-  if (!url.protocol.startsWith("http")) return;
-
-  // 導航請求（整頁）=> Network First（確保拿到新版本）
-  if (request.mode === "navigate") {
+  if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
         try {
-          const fresh = await fetch(request);
-          const cache = await caches.open(RUNTIME_CACHE);
-          cache.put(request, fresh.clone());
+          const fresh = await fetch(req, { cache: "no-store" });
+          const cache = await caches.open(CACHE_NAME);
+          cache.put("./index.html", fresh.clone());
           return fresh;
         } catch (err) {
-          const cached = await caches.match(request);
-          if (cached) return cached;
-          return caches.match("./index.html");
+          const cached = await caches.match("./index.html");
+          return cached || Response.error();
         }
       })()
     );
     return;
   }
 
-  // 同網域靜態資源 => Stale While Revalidate
-  const isSameOrigin = url.origin === self.location.origin;
-  const isStaticAsset =
-    /\.(?:js|css|png|jpg|jpeg|svg|webp|ico|json|woff2?|ttf)$/i.test(url.pathname);
-
-  if (isSameOrigin && isStaticAsset) {
-    event.respondWith(
-      (async () => {
-        const cache = await caches.open(RUNTIME_CACHE);
-        const cached = await cache.match(request);
-
-        const networkFetch = fetch(request)
-          .then((res) => {
-            cache.put(request, res.clone());
-            return res;
-          })
-          .catch(() => null);
-
-        return cached || networkFetch || fetch(request);
-      })()
-    );
-    return;
-  }
-
-  // 其他 => Network First，失敗再讀快取
+  // 其他資源：Cache First + 背景更新
   event.respondWith(
     (async () => {
+      const cached = await caches.match(req);
+      if (cached) {
+        fetch(req)
+          .then(async (res) => {
+            if (res && res.status === 200) {
+              const cache = await caches.open(CACHE_NAME);
+              cache.put(req, res.clone());
+            }
+          })
+          .catch(() => {});
+        return cached;
+      }
+
       try {
-        const fresh = await fetch(request);
-        const cache = await caches.open(RUNTIME_CACHE);
-        cache.put(request, fresh.clone());
+        const fresh = await fetch(req);
+        if (fresh && fresh.status === 200) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(req, fresh.clone());
+        }
         return fresh;
       } catch (err) {
-        const cached = await caches.match(request);
-        if (cached) return cached;
-        throw err;
+        return Response.error();
       }
     })()
   );
