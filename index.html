@@ -454,7 +454,6 @@ const SERVICE_MINI_LIST = [
         owner_name: "",
         owner_phone: "",
         owner_email: "",
-        owner_no_email: false,
         owner_id: "",
         owner_address: "",
         emergency_name: "",
@@ -549,36 +548,6 @@ const SERVICE_MINI_LIST = [
         };
       }, [sigModalOpen]);
 
-      useEffect(() => {
-        const draft = localStorage.getItem("hami_draft_v2");
-        if (!draft) return;
-        const ok = confirm("偵測到未完成草稿，是否要恢復？");
-        if (!ok) {
-          localStorage.removeItem("hami_draft_v2");
-          return;
-        }
-        const parsed = JSON.parse(draft);
-        if (parsed.owner) setOwner(parsed.owner);
-        if (parsed.pets && parsed.pets.length) setPets(parsed.pets);
-        if (typeof parsed.currentPetIndex === "number") setCurrentPetIndex(parsed.currentPetIndex);
-        if (parsed.agreeTerms) setAgreeTerms(parsed.agreeTerms);
-        if (parsed.signatureData) setSignatureData(parsed.signatureData);
-        if (parsed.signTime) setSignTime(parsed.signTime);
-        setToast("已恢復草稿");
-      }, []);
-
-      useEffect(() => {
-        const payload = {
-          owner,
-          pets,
-          currentPetIndex,
-          agreeTerms,
-          signatureData,
-          signTime
-        };
-        localStorage.setItem("hami_draft_v2", JSON.stringify(payload));
-      }, [owner, pets, currentPetIndex, agreeTerms, signatureData, signTime]);
-
       const patchCurrentPet = (patch) => {
         setPets((prev) => {
           const next = [...prev];
@@ -663,17 +632,16 @@ const SERVICE_MINI_LIST = [
       const applyOwnerOnly = () => {
         if (!foundHistory.length) return;
         const o = foundHistory[0].owner || {};
-        setOwner({
-          owner_name: o.owner_name || "",
-          owner_phone: o.owner_phone || "",
-          owner_email: o.owner_email || "",
-          owner_no_email: !!o.owner_no_email,
-          owner_id: o.owner_id || "",
-          owner_address: o.owner_address || "",
-          emergency_name: o.emergency_name || "",
-          emergency_phone: o.emergency_phone || "",
-          preferred_hospital: o.preferred_hospital || ""
-        });
+setOwner({
+  owner_name: o.owner_name || "",
+  owner_phone: o.owner_phone || "",
+  owner_email: o.owner_email || "",
+  owner_id: o.owner_id || "",
+  owner_address: o.owner_address || "",
+  emergency_name: o.emergency_name || "",
+  emergency_phone: o.emergency_phone || "",
+  preferred_hospital: o.preferred_hospital || ""
+});
         setHistoryOpen(false);
         setToast("已帶入飼主資料");
       };
@@ -685,17 +653,16 @@ const SERVICE_MINI_LIST = [
         }
         const base = foundHistory[selectedHistoryIdx[0]];
         const o = base.owner || {};
-        setOwner({
-          owner_name: o.owner_name || "",
-          owner_phone: o.owner_phone || "",
-          owner_email: o.owner_email || "",
-          owner_no_email: !!o.owner_no_email,
-          owner_id: o.owner_id || "",
-          owner_address: o.owner_address || "",
-          emergency_name: o.emergency_name || "",
-          emergency_phone: o.emergency_phone || "",
-          preferred_hospital: o.preferred_hospital || ""
-        });
+setOwner({
+  owner_name: o.owner_name || "",
+  owner_phone: o.owner_phone || "",
+  owner_email: o.owner_email || "",
+  owner_id: o.owner_id || "",
+  owner_address: o.owner_address || "",
+  emergency_name: o.emergency_name || "",
+  emergency_phone: o.emergency_phone || "",
+  preferred_hospital: o.preferred_hospital || ""
+});
 
         const mergedPets = [];
         selectedHistoryIdx.forEach((i) => {
@@ -747,13 +714,6 @@ if (ownerEmail && !emailOk) e.owner_email = "電子信箱格式不正確（若�
             e[`${key}_pet_medical_note`] = `第 ${idx + 1} 隻：請填寫病史描述`;
           }
 
-          if (!x.check_eye) e[`${key}_check_eye`] = `第 ${idx + 1} 隻：請填眼睛檢視`;
-          if (!x.check_ear) e[`${key}_check_ear`] = `第 ${idx + 1} 隻：請填耳朵檢視`;
-          if (!x.check_tooth) e[`${key}_check_tooth`] = `第 ${idx + 1} 隻：請填牙齒檢視`;
-          if (!x.check_limb) e[`${key}_check_limb`] = `第 ${idx + 1} 隻：請填四肢檢視`;
-          if (!x.check_skin) e[`${key}_check_skin`] = `第 ${idx + 1} 隻：請填皮膚檢視`;
-          if (!x.check_fur) e[`${key}_check_fur`] = `第 ${idx + 1} 隻：請填皮毛檢視`;
-
           if (!x.services || !x.services.length) e[`${key}_services`] = `第 ${idx + 1} 隻：至少勾選一項服務`;
           if ((x.services || []).includes("其他項目") && !x.service_type_other.trim()) {
             e[`${key}_service_type_other`] = `第 ${idx + 1} 隻：請填寫其他項目`;
@@ -785,19 +745,18 @@ owner_email: owner.owner_email.trim()
         };
       };
 
-      const onSubmit = () => {
-        if (!validate()) {
-          const firstMsg = Object.values(errors)[0] || "請檢查必填欄位";
-          alert(firstMsg);
-          return;
-        }
+const onSubmit = () => {
+  const ok = validate();
+  if (!ok) {
+    alert("請檢查紅色欄位後再送出");
+    return;
+  }
 
-        const payload = buildPayload();
-        saveRecord(payload);
-        localStorage.removeItem("hami_draft_v2");
-        setLastPayload(payload);
-        setStep("done");
-      };
+  const payload = buildPayload();
+  saveRecord(payload);
+  setLastPayload(payload);
+  setStep("done");
+};
 
       const openContractWindow = () => {
         if (!lastPayload) return;
@@ -812,17 +771,16 @@ owner_email: owner.owner_email.trim()
       };
 
       const resetAll = () => {
-        setOwner({
-          owner_name: "",
-          owner_phone: "",
-          owner_email: "",
-          owner_no_email: false,
-          owner_id: "",
-          owner_address: "",
-          emergency_name: "",
-          emergency_phone: "",
-          preferred_hospital: ""
-        });
+setOwner({
+  owner_name: "",
+  owner_phone: "",
+  owner_email: "",
+  owner_id: "",
+  owner_address: "",
+  emergency_name: "",
+  emergency_phone: "",
+  preferred_hospital: ""
+});
         setPets([createEmptyPet()]);
         setCurrentPetIndex(0);
         setAgreeTerms(false);
@@ -837,28 +795,6 @@ owner_email: owner.owner_email.trim()
         <button type="button" className={`chip ${active ? "active" : ""}`} onClick={onClick}>
           {label}
         </button>
-      );
-
-      const CheckStatus = ({ title, keyName, noteKey, options = ["正常", "異常"] }) => (
-        <div className="rounded-xl border border-hami-line p-3 bg-[#FFFEFB]">
-          <div className="text-xs font-black mb-2">{title} *</div>
-          <div className="flex flex-wrap gap-2 mb-2">
-            {options.map((v) => (
-              <Chip
-                key={v}
-                active={p[keyName] === v}
-                onClick={() => patchCurrentPet({ [keyName]: v })}
-                label={v}
-              />
-            ))}
-          </div>
-          <input
-            className="field"
-            placeholder="若為異常 / 其他，請補充描述"
-            value={p[noteKey]}
-            onChange={(e) => patchCurrentPet({ [noteKey]: e.target.value })}
-          />
-        </div>
       );
 
       if (step === "done") {
@@ -914,13 +850,12 @@ owner_email: owner.owner_email.trim()
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-bold">電子信箱(用於接收契約副本) </label>
                   </div>
-                  <input
-                    className={`field ${errors.owner_email ? "error" : ""}`}
-                    disabled={owner.owner_no_email}
-                    placeholder={"若無可留空 "}
-                    value={owner.owner_email}
-                    onChange={(e)=>setOwner({...owner, owner_email:e.target.value})}
-                  />
+<input
+  className={`field ${errors.owner_email ? "error" : ""}`}
+  placeholder={"若無可留空 "}
+  value={owner.owner_email}
+  onChange={(e)=>setOwner({...owner, owner_email:e.target.value})}
+/>
                   {errors.owner_email && <div className="error-text">{errors.owner_email}</div>}
                 </div>
 
@@ -1193,7 +1128,7 @@ owner_email: owner.owner_email.trim()
                 <div><b>特寵業許可證：</b>(待確認)</div>
                 <div><b>營業時間：</b>(待確認)</div>
                 <div className="mt-2 p-3 rounded-xl bg-[#FFFCF4] border border-hami-line">
-                  <b>特約緊急送醫：</b>（待確認)
+                  <b>特約緊急送醫：</b>(待確認)
                 </div>
               </div>
             </section>
@@ -1340,14 +1275,6 @@ owner_email: owner.owner_email.trim()
               <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">性別/結紮</td><td style="border-bottom:1px solid #f0f0f0;">${p.pet_sex || "-"} / ${p.pet_neuter || "-"}</td></tr>
               <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">親人/親狗/攻擊性</td><td style="border-bottom:1px solid #f0f0f0;">${p.pet_friendly_human || "-"} / ${p.pet_friendly_dog || "-"} / ${p.pet_aggressive || "-"}</td></tr>
               <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">病史/敏感部位</td><td style="border-bottom:1px solid #f0f0f0;">${p.pet_medical_history || "-"} ${p.pet_medical_note ? `(${p.pet_medical_note})` : ""} / ${p.pet_dislike_touch || "無"}</td></tr>
-              <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">目視檢查</td><td style="border-bottom:1px solid #f0f0f0;">
-                眼:${p.check_eye || "-"} ${p.eye_note ? `(${p.eye_note})` : ""}、
-                耳:${p.check_ear || "-"} ${p.ear_note ? `(${p.ear_note})` : ""}、
-                牙:${p.check_tooth || "-"} ${p.tooth_note ? `(${p.tooth_note})` : ""}、
-                肢:${p.check_limb || "-"} ${p.limb_note ? `(${p.limb_note})` : ""}、
-                膚:${p.check_skin || "-"} ${p.skin_note ? `(${p.skin_note})` : ""}、
-                毛:${p.check_fur || "-"} ${p.fur_note ? `(${p.fur_note})` : ""}
-              </td></tr>
               <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">服務項目</td><td style="border-bottom:1px solid #f0f0f0;">${services || "-"}</td></tr>
               <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">接回時間</td><td style="border-bottom:1px solid #f0f0f0;">${pickup}</td></tr>
               <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">支付方式</td><td style="border-bottom:1px solid #f0f0f0;">${payment}</td></tr>
@@ -1377,7 +1304,7 @@ owner_email: owner.owner_email.trim()
       <table width="100%" cellpadding="6" cellspacing="0" style="font-size:13px;border-collapse:collapse;margin-bottom:12px;">
         <tr><td style="width:24%;color:#888;border-bottom:1px solid #f0f0f0;">姓名</td><td style="border-bottom:1px solid #f0f0f0;">${owner.owner_name || "-"}</td></tr>
         <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">手機</td><td style="border-bottom:1px solid #f0f0f0;">${owner.owner_phone || "-"}</td></tr>
-        <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">信箱</td><td style="border-bottom:1px solid #f0f0f0;">${owner.owner_no_email ? "無" : (owner.owner_email || "-")}</td></tr>
+<tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">信箱</td><td style="border-bottom:1px solid #f0f0f0;">${owner.owner_email || "未提供"}</td></tr>
         <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">身分證</td><td style="border-bottom:1px solid #f0f0f0;">${owner.owner_id || "-"}</td></tr>
         <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">地址</td><td style="border-bottom:1px solid #f0f0f0;">${owner.owner_address || "-"}</td></tr>
         <tr><td style="color:#888;border-bottom:1px solid #f0f0f0;">緊急聯絡</td><td style="border-bottom:1px solid #f0f0f0;">${owner.emergency_name || "-"} / ${owner.emergency_phone || "-"}</td></tr>
