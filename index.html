@@ -901,7 +901,7 @@ setOwner({
 
             <section className="card p-5">
               <div className="flex items-center justify-between mb-3">
-                <h2 className="section-title !mb-0">二、寵物詳細資料（可多隻）</h2>
+                <h2 className="section-title !mb-0">二、寵物詳細資料</h2>
                 <button className="btn-primary" type="button" onClick={addPet}>新增毛孩</button>
               </div>
 
@@ -965,51 +965,53 @@ setOwner({
                   />
                 </div>
 
-                <div>
-                  <label className="text-xs font-bold">性別 *</label>
-                  <div className="flex gap-2 mt-2">
-                    <Chip active={p.pet_sex==="公"} onClick={()=>patchCurrentPet({pet_sex:"公"})} label="公" />
-                    <Chip active={p.pet_sex==="母"} onClick={()=>patchCurrentPet({pet_sex:"母"})} label="母" />
+                <div className="md:col-span-2 grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold">性別 *</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Chip active={p.pet_sex==="公"} onClick={()=>patchCurrentPet({pet_sex:"公"})} label="公" />
+                      <Chip active={p.pet_sex==="母"} onClick={()=>patchCurrentPet({pet_sex:"母"})} label="母" />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-xs font-bold">結紮 *</label>
-                  <div className="flex gap-2 mt-2">
-                    <Chip active={p.pet_neuter==="是"} onClick={()=>patchCurrentPet({pet_neuter:"是"})} label="是" />
-                    <Chip active={p.pet_neuter==="否"} onClick={()=>patchCurrentPet({pet_neuter:"否"})} label="否" />
+                  <div>
+                    <label className="text-xs font-bold">結紮 *</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Chip active={p.pet_neuter==="是"} onClick={()=>patchCurrentPet({pet_neuter:"是"})} label="是" />
+                      <Chip active={p.pet_neuter==="否"} onClick={()=>patchCurrentPet({pet_neuter:"否"})} label="否" />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-xs font-bold">親人 *</label>
-                  <div className="flex gap-2 mt-2">
-                    <Chip active={p.pet_friendly_human==="是"} onClick={()=>patchCurrentPet({pet_friendly_human:"是"})} label="是" />
-                    <Chip active={p.pet_friendly_human==="否"} onClick={()=>patchCurrentPet({pet_friendly_human:"否"})} label="否" />
+                  <div>
+                    <label className="text-xs font-bold">親人 *</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Chip active={p.pet_friendly_human==="是"} onClick={()=>patchCurrentPet({pet_friendly_human:"是"})} label="是" />
+                      <Chip active={p.pet_friendly_human==="否"} onClick={()=>patchCurrentPet({pet_friendly_human:"否"})} label="否" />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-xs font-bold">親狗 *</label>
-                  <div className="flex gap-2 mt-2">
-                    <Chip active={p.pet_friendly_dog==="是"} onClick={()=>patchCurrentPet({pet_friendly_dog:"是"})} label="是" />
-                    <Chip active={p.pet_friendly_dog==="否"} onClick={()=>patchCurrentPet({pet_friendly_dog:"否"})} label="否" />
+                  <div>
+                    <label className="text-xs font-bold">親狗 *</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Chip active={p.pet_friendly_dog==="是"} onClick={()=>patchCurrentPet({pet_friendly_dog:"是"})} label="是" />
+                      <Chip active={p.pet_friendly_dog==="否"} onClick={()=>patchCurrentPet({pet_friendly_dog:"否"})} label="否" />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-xs font-bold">具攻擊性 *</label>
-                  <div className="flex gap-2 mt-2">
-                    <Chip active={p.pet_aggressive==="是"} onClick={()=>patchCurrentPet({pet_aggressive:"是"})} label="是" />
-                    <Chip active={p.pet_aggressive==="否"} onClick={()=>patchCurrentPet({pet_aggressive:"否"})} label="否" />
+                  <div>
+                    <label className="text-xs font-bold">具攻擊性 *</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Chip active={p.pet_aggressive==="是"} onClick={()=>patchCurrentPet({pet_aggressive:"是"})} label="是" />
+                      <Chip active={p.pet_aggressive==="否"} onClick={()=>patchCurrentPet({pet_aggressive:"否"})} label="否" />
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-xs font-bold">過往病史 *</label>
-                  <div className="flex gap-2 mt-2">
-                    <Chip active={p.pet_medical_history==="有"} onClick={()=>patchCurrentPet({pet_medical_history:"有"})} label="有" />
-                    <Chip active={p.pet_medical_history==="無"} onClick={()=>patchCurrentPet({pet_medical_history:"無", pet_medical_note:""})} label="無" />
+                  <div>
+                    <label className="text-xs font-bold">過往病史 *</label>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <Chip active={p.pet_medical_history==="有"} onClick={()=>patchCurrentPet({pet_medical_history:"有"})} label="有" />
+                      <Chip active={p.pet_medical_history==="無"} onClick={()=>patchCurrentPet({pet_medical_history:"無", pet_medical_note:""})} label="無" />
+                    </div>
                   </div>
                 </div>
 
@@ -1068,21 +1070,30 @@ setOwner({
       <div className="flex gap-2 mt-2">
         <button
           type="button"
-          className={`btn-secondary ${p.pickup_mode==="notify" ? "ring-2 ring-[#E0CA8F]" : ""}`}
-          onClick={()=>patchCurrentPet({
-            pickup_mode: p.pickup_mode==="notify" ? "time" : "notify",
-            pickup_time: p.pickup_mode==="notify" ? "" : p.pickup_time
-          })}
+          className={`btn-secondary whitespace-nowrap ${p.pickup_mode==="notify" ? "ring-2 ring-[#E0CA8F]" : ""}`}
+          onClick={() =>
+            patchCurrentPet(
+              p.pickup_mode === "notify"
+                ? { pickup_mode: "time" }
+                : { pickup_mode: "notify", pickup_time: "" }
+            )
+          }
         >
-          {p.pickup_mode==="notify" ? "已選：另行通知" : "另行通知"}
+          {p.pickup_mode==="notify" ? "另行通知" : "另行通知"}
         </button>
-        <input
-          type="time"
-          className="field"
-          disabled={p.pickup_mode==="notify"}
-          value={p.pickup_mode==="notify" ? "" : p.pickup_time}
-          onChange={(e)=>patchCurrentPet({pickup_time:e.target.value})}
-        />
+
+        {p.pickup_mode === "notify" ? (
+          <div className="field flex-1 !bg-[#FFF9EA] !text-[#6D5D4F] font-bold flex items-center">
+            另行通知美容完成接回時間
+          </div>
+        ) : (
+          <input
+            type="time"
+            className="field flex-1"
+            value={p.pickup_time}
+            onChange={(e)=>patchCurrentPet({pickup_time:e.target.value})}
+          />
+        )}
       </div>
       <p className="text-xs text-[#C2514A] font-bold mt-2">⚠️ 逾時 1 小時以上，將依公告酌收安親費。</p>
     </div>
@@ -1121,15 +1132,33 @@ setOwner({
 
             <section className="card p-5">
               <h2 className="section-title">五、乙方資訊（Hami 寵物美容）</h2>
-              <div className="text-sm leading-7 text-[#6D5D4F]">
-                <div><b>負責人：</b>(待確認)</div>
-                <div><b>聯絡電話：</b>(待確認)</div>
-                <div><b>地址：</b>(待確認)</div>
-                <div><b>特寵業許可證：</b>(待確認)</div>
-                <div><b>營業時間：</b>(待確認)</div>
-                <div className="mt-2 p-3 rounded-xl bg-[#FFFCF4] border border-hami-line">
-                  <b>特約緊急送醫：</b>(待確認)
+
+              <div className="px-1 text-[#5D4D41] space-y-2">
+                <div className="flex items-start gap-3">
+                  <div className="w-[88px] shrink-0 text-xs font-bold text-[#8D7E73]">負責人</div>
+                  <div className="text-sm font-black">許傳侑</div>
                 </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-[88px] shrink-0 text-xs font-bold text-[#8D7E73]">聯絡電話</div>
+                  <div className="text-sm font-black">03-4818196</div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-[88px] shrink-0 text-xs font-bold text-[#8D7E73]">地址</div>
+                  <div className="text-sm font-black">桃園市楊梅區梅獅路二段70號1樓</div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-[88px] shrink-0 text-xs font-bold text-[#8D7E73]">營業時間</div>
+                  <div className="text-sm font-black">10:00-18:00</div>
+                </div>
+              </div>
+
+              <div className="mt-3 px-1">
+                <div className="text-xs font-bold text-[#8D7E73]">特約緊急送醫</div>
+                <div className="text-sm font-black text-[#5D4D41]">人人寵物獸醫－埔心分院</div>
+                <div className="text-sm font-bold text-[#8D7E73]">326桃園市楊梅區永美路272號</div>
               </div>
             </section>
 
@@ -1262,7 +1291,7 @@ setOwner({
 
       const renderPet = (p, i) => {
         const services = (p.services || []).join("、") + ((p.services || []).includes("其他項目") ? `（${p.service_type_other || "未填"}）` : "");
-        const pickup = p.pickup_mode === "notify" ? "另行通知" : (p.pickup_time || "未填");
+        const pickup = p.pickup_mode === "notify" ? "另行通知美容完成接回時間" : (p.pickup_time || "未填");
         const payment = p.payment === "其他" ? `其他（${p.payment_other || "未填"}）` : (p.payment || "未填");
 
         return `
