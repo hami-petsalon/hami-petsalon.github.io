@@ -265,6 +265,10 @@
       overflow:hidden;
       box-shadow:0 20px 40px rgba(50,33,20,.20);
     }
+    .contract-modal{
+  height:90vh;
+  height:90dvh;
+}
 
     .signature-box{
       border:2px dashed #E7DEC9;
@@ -1563,8 +1567,7 @@ if (step === "done") {
           onClick={() => setContractOpen(false)}
         >
           <div
-            className="max-w-4xl mx-auto mt-3 modal-panel bg-white overflow-hidden flex flex-col"
-            style={{ height: "90vh", height: "90dvh" }}
+            className="max-w-4xl mx-auto mt-3 modal-panel contract-modal bg-white overflow-hidden flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             <div
