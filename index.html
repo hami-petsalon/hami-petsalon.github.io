@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
+  <link rel="manifest" href="./manifest.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Hami 寵物美容｜寵物美容定型化契約</title>
 
@@ -745,6 +746,25 @@ const [submitBusy, setSubmitBusy] = useState(false);
 const canvasRef = useRef(null);
 const ctxRef = useRef(null);
 const termsBodyRef = useRef(null);
+const lastLogoTapRef = useRef(0);
+
+const ver = new URL(window.location.href).searchParams.get("v");
+const ADMIN_URL = ver ? `./admin.html?v=${encodeURIComponent(ver)}` : "./admin.html";
+
+const goAdmin = () => {
+  window.location.assign(ADMIN_URL);
+};
+
+// 行動端雙點：兩次點擊時間差 < 350ms 視為雙點
+const handleLogoTap = () => {
+  const now = Date.now();
+  if (now - lastLogoTapRef.current < 350) {
+    goAdmin();
+    lastLogoTapRef.current = 0;
+    return;
+  }
+  lastLogoTapRef.current = now;
+};
       const drawingRef = useRef(false);
       const hasSignRef = useRef(false);
 
@@ -1548,13 +1568,35 @@ if (step === "done") {
 
           <header className="sticky top-0 z-40 p-3 md:p-4">
             <div className="max-w-4xl mx-auto nav-shell px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <img src="https://hzbvhuagzuzsjldzswpo.supabase.co/storage/v1/object/public/logo/logo.png" alt="Hami logo" className="w-10 h-10 object-contain rounded-full bg-white/70 p-1" />
-                <div>
-                  <h1 className="font-black text-sm md:text-base tracking-wide">Hami 寵物美容</h1>
-                  <p className="text-[11px] text-hami-muted/90">寵物美容定型化契約</p>
-                </div>
-              </div>
+              <button
+  type="button"
+  className="flex items-center gap-3 text-left select-none touch-manipulation"
+  title="（雙擊進入後台）"
+  onDoubleClick={(e) => {
+    e.preventDefault();
+    goAdmin();
+  }}
+  onPointerUp={(e) => {
+    // ✅ 行動端用雙點（touch/pen），桌機滑鼠交給 onDoubleClick
+    if (e.pointerType && e.pointerType !== "mouse") handleLogoTap();
+  }}
+  onTouchEnd={(e) => {
+    // ✅ iOS 某些情況 pointer events 不穩時的保險
+    e.preventDefault();
+    handleLogoTap();
+  }}
+>
+  <img
+    src="https://hzbvhuagzuzsjldzswpo.supabase.co/storage/v1/object/public/logo/logo.png"
+    alt="Hami logo"
+    className="w-10 h-10 object-contain rounded-full bg-white/70 p-1"
+    draggable="false"
+  />
+  <div>
+    <h1 className="font-black text-sm md:text-base tracking-wide">Hami 寵物美容</h1>
+    <p className="text-[11px] text-hami-muted/90">寵物美容定型化契約</p>
+  </div>
+</button>
             </div>
           </header>
 

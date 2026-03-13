@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8" />
+  <link rel="manifest" href="./manifest-admin.json">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Hami Admin｜合約管理</title>
 
@@ -1844,5 +1845,82 @@ function renderPetAll(pet, idx){
   });
 </script>
 
+  <script>
+    (function () {
+      if (!("serviceWorker" in navigator)) return;
+
+      const SW_URL_FIXED = "./sw.js?v=4";
+      const APP_VERSION =
+        new URL(SW_URL_FIXED, window.location.href).searchParams.get("v") || "0";
+
+      let isRefreshing = false;
+
+      const verKey = "__hami_app_version__";
+      const savedVer = localStorage.getItem(verKey);
+      if (savedVer !== APP_VERSION) {
+        localStorage.setItem(verKey, APP_VERSION);
+        const u = new URL(window.location.href);
+        u.searchParams.set("v", APP_VERSION);
+        if (u.href !== window.location.href) {
+          window.location.replace(u.href);
+          return;
+        }
+      }
+
+      function forceActivate(registration) {
+        if (registration && registration.waiting) {
+          registration.waiting.postMessage({ type: "SKIP_WAITING" });
+        }
+      }
+
+      function listenForWaitingServiceWorker(registration) {
+        if (!registration) return;
+
+        if (registration.waiting) {
+          forceActivate(registration);
+          return;
+        }
+
+        registration.addEventListener("updatefound", () => {
+          const newWorker = registration.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener("statechange", () => {
+            if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+              forceActivate(registration);
+            }
+          });
+        });
+      }
+
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (isRefreshing) return;
+        isRefreshing = true;
+        window.location.reload();
+      });
+
+      window.addEventListener("load", async () => {
+        try {
+          const registration = await navigator.serviceWorker.register(SW_URL_FIXED, {
+            scope: "./",              // ✅ 明確指定整站 scope
+            updateViaCache: "none"
+          });
+
+          listenForWaitingServiceWorker(registration);
+          registration.update();
+
+          setInterval(() => registration.update(), 30000);
+
+          document.addEventListener("visibilitychange", () => {
+            if (document.visibilityState === "visible") registration.update();
+          });
+
+          window.addEventListener("online", () => registration.update());
+        } catch (err) {
+          console.error("Service Worker 註冊失敗：", err);
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
