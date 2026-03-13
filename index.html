@@ -412,7 +412,7 @@
   (function () {
     if (!("serviceWorker" in navigator)) return;
 
-    const SW_URL_FIXED = "./sw.js?v=4";
+    const SW_URL_FIXED = "./sw.js?v=5";
 
     const APP_VERSION =
       new URL(SW_URL_FIXED, window.location.href).searchParams.get("v") || "0";
@@ -747,6 +747,8 @@ const canvasRef = useRef(null);
 const ctxRef = useRef(null);
 const termsBodyRef = useRef(null);
 const lastLogoTapRef = useRef(0);
+const [contractOpen, setContractOpen] = useState(false);
+const [contractHtml, setContractHtml] = useState("");
 
 const ver = new URL(window.location.href).searchParams.get("v");
 const ADMIN_URL = ver ? `./admin.html?v=${encodeURIComponent(ver)}` : "./admin.html";
@@ -1393,7 +1395,7 @@ if (!ok) {
       });
     } catch (e) {
       console.error(e);
-      alert("⚠️ 已成功送出，但 Email 寄送失敗。請點『開啟完整契約』截圖保存。");
+      alert("⚠️ 已成功送出，但 Email 寄送失敗。請點『開啟完整契約』後截圖保存。");
     }
 
     setStep("done");
@@ -1413,13 +1415,8 @@ const openContractWindow = () => {
     signature: lastPayload.signature_url || lastPayload.signature || ""
   });
 
-  const w = window.open("", "_blank");
-  if (!w) {
-    alert("請允許彈出視窗");
-    return;
-  }
-  w.document.write(html);
-  w.document.close();
+  setContractHtml(html);
+  setContractOpen(true);
 };
       const resetAll = () => {
 setGlobalPayment("");
@@ -1559,6 +1556,45 @@ if (step === "done") {
           返回首頁
         </button>
       </section>
+
+      {contractOpen && (
+        <div
+          className="fixed inset-0 z-[90] bg-black/55 p-3"
+          onClick={() => setContractOpen(false)}
+        >
+          <div
+            className="max-w-4xl mx-auto mt-3 modal-panel bg-white overflow-hidden flex flex-col"
+            style={{ height: "90vh", height: "90dvh" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="bg-gradient-to-r from-[#F6EBC6] to-[#E8D7A5] text-[#5D4D41] px-4 py-3 font-black text-sm flex items-center justify-between"
+            >
+              <div>契約副本（同頁顯示）</div>
+              <button
+                type="button"
+                className="text-xs font-black px-3 py-1 rounded bg-white/70 text-[#5D4D41]"
+                onClick={() => setContractOpen(false)}
+              >
+                關閉
+              </button>
+            </div>
+
+            <div className="flex-1 bg-white overflow-hidden">
+              <iframe
+                title="contract"
+                className="w-full h-full"
+                style={{ border: "0" }}
+                srcDoc={contractHtml}
+              />
+            </div>
+
+            <div className="p-3 border-t border-hami-line bg-[#FFFEFB] text-xs font-bold text-hami-muted leading-6">
+              提醒：建議直接截圖保存；若要儲存簽名圖，可在契約內容中長按簽名圖片另存。
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
