@@ -588,10 +588,7 @@
           修改完成後系統會重新整理，請用新密碼重新登入一次。
         </div>
       </div>
-    </div>
-  </div>
-    </div>
-  </div>
+</div>
 <script>
   // =========================
   // ✅ Supabase Config（Hami）
@@ -1129,56 +1126,7 @@ function mapChipStatus(status, no){
       $("btnPwdConfirm").textContent = "確認修改";
     }
   }
-  function closePwdModal(){
-    closeModal("pwdModal");
-  }
 
-  async function handleChangeStaffPassword(){
-    setPwdError("");
-
-    const oldPwd = ($("pwdOld").value || "").trim();
-    const newPwd = ($("pwdNew").value || "").trim();
-    const confirmPwd = ($("pwdConfirm").value || "").trim();
-
-    if (!oldPwd) return setPwdError("請輸入員工舊密碼");
-    if (!newPwd || newPwd.length < 6) return setPwdError("新密碼至少 6 碼");
-    if (newPwd !== confirmPwd) return setPwdError("確認新密碼不一致");
-
-    $("btnPwdConfirm").disabled = true;
-    $("btnPwdConfirm").classList.add("opacity-60");
-    $("btnPwdConfirm").textContent = "處理中...";
-
-    try {
-      // 保險：先清掉 sbPwd 可能殘留的 session
-      try { await sbPwd.auth.signOut(); } catch {}
-
-      // 1) 用「員工帳號 + 舊密碼」登入（你要的：只需輸入員工密碼）
-      const { error: signErr } = await sbPwd.auth.signInWithPassword({
-        email: STAFF_EMAIL,
-        password: oldPwd
-      });
-      if (signErr) throw new Error("員工舊密碼錯誤");
-
-      // 2) 更新員工密碼
-      const { error: upErr } = await sbPwd.auth.updateUser({ password: newPwd });
-      if (upErr) throw upErr;
-
-      // 3) 登出 sbPwd
-      await sbPwd.auth.signOut();
-
-      alert("✅ 員工密碼已修改完成。\n\n系統將重新整理，請用新密碼重新登入一次。");
-
-      // 4) 依你需求：修改完成後重新整理，請他重新登入
-      await sb.auth.signOut();
-      window.location.reload();
-    } catch (e){
-      setPwdError("修改失敗：" + (e?.message || "請稍後再試"));
-    } finally {
-      $("btnPwdConfirm").disabled = false;
-      $("btnPwdConfirm").classList.remove("opacity-60");
-      $("btnPwdConfirm").textContent = "確認修改";
-    }
-  }
   function setLoginBusy(b){
     $("btnLogin").disabled = b;
     $("btnLogin").classList.toggle("opacity-60", b);
