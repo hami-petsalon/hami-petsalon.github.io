@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Hami Admin｜合約管理</title>
+
+  <link rel="icon" href="https://hzbvhuagzuzsjldzswpo.supabase.co/storage/v1/object/public/logo/logo.png" type="image/png" />
+  <meta name="theme-color" content="#FFFDF8" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hami: {
+              bg: "#FFFDF8",
+              surface: "#ffffff",
+              text: "#5D4D41",
+              muted: "#8D7E73",
+              primary: "#E8D7A5",
+              primaryDark: "#DDBF74",
+              accent: "#F9EEC9",
+              line: "#EFE7D6",
+              danger: "#D9534F",
+              success: "#22A06B"
+            }
+          },
+          boxShadow: {
+            soft: "0 10px 24px rgba(93,77,65,.08)"
+          },
+          borderRadius: {
+            cute: "1.6rem"
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root{
+      --bg:#FFFDF8;
+      --text:#5D4D41;
+      --muted:#8D7E73;
+      --line:#EFE7D6;
+    }
+    html, body{
+      background:
+        radial-gradient(circle at 10% 8%, rgba(247,231,181,.30), transparent 35%),
+        radial-gradient(circle at 88% 10%, rgba(115,99,87,.10), transparent 30%),
+        linear-gradient(180deg,#FFFEFC 0%, var(--bg) 100%);
+      color: var(--text);
+      font-family: "Noto Sans TC", system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    *{ -webkit-tap-highlight-color: transparent; box-sizing:border-box; }
+    input, select, textarea { font-size: 16px; }
+
+    .card{
+      background: rgba(255,255,255,.92);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 10px 24px rgba(93,77,65,.07);
+    }
+    .btn-jelly{ transition:.18s ease; cursor:pointer; user-select:none; }
+    .btn-jelly:hover{ transform: translateY(-1px); }
+    .btn-jelly:active{ transform: scale(.985); }
+    .custom-scrollbar::-webkit-scrollbar { width: 7px; height: 7px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E3D3C6; border-radius: 999px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+
+    .badge{
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 900;
+      border: 1px solid #E9E1D4;
+      background: #fff;
+      color: #8D7E73;
+      white-space: nowrap;
+    }
+    .b-pending{ background:#FEF3C7; color:#B45309; border-color: rgba(180,83,9,.15); }
+    .b-completed{ background:#E5E7EB; color:#374151; border-color: rgba(55,65,81,.12); }
+    .b-cancelled{ background:#FEE2E2; color:#B91C1C; border-color: rgba(185,28,28,.12); }
+
+    .pill{
+      padding: 7px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 900;
+      border: 1px solid rgba(0,0,0,.08);
+      background: #fff;
+      color: #5D4D41;
+    }
+
+    .field{
+      width: 100%;
+      border: 1px solid #E7DED0;
+      background: #FFFEFC;
+      border-radius: 16px;
+      padding: 12px 14px;
+      font-size: 14px;
+      color: #5D4D41;
+      outline: none;
+      transition: .15s ease;
+    }
+    .field:focus{
+      border-color: #DDBF74;
+      box-shadow: 0 0 0 4px rgba(186,160,95,.15);
+      background: #fff;
+    }
+
+    .btn{
+      border-radius: 18px;
+      padding: 12px 14px;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 1.5px solid transparent;
+      min-height: 46px;
+    }
+    .btn:disabled{ opacity: .55; cursor:not-allowed; transform:none !important; }
+    .btn-primary{
+      border-color:#E0CA8F;
+      background: linear-gradient(180deg,#F6EBC6 0%, #E8D7A5 100%);
+      color:#5D4D41;
+      box-shadow: 0 10px 18px rgba(186,160,95,.20);
+    }
+    .btn-ghost{
+      border-color:#E9E1D4;
+      background:#FFFEFB;
+      color:#7D6F62;
+    }
+    .btn-dark{
+      border-color: rgba(0,0,0,.08);
+      background: linear-gradient(180deg,#4A3C33 0%, #3E332C 100%);
+      color:#fff;
+      box-shadow: 0 10px 18px rgba(60,45,35,.18);
+    }
+
+    .modal-backdrop{
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      background: rgba(0,0,0,.5);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+    }
+    .modal-backdrop.show{ display:flex; }
+    .modal{
+      width: 100%;
+      max-width: 980px;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: 0 20px 40px rgba(50,33,20,.20);
+      overflow: hidden;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .toast{
+      position: fixed;
+      right: 16px;
+      top: calc(env(safe-area-inset-top) + 76px);
+      z-index: 120;
+      background: #fff;
+      border: 1px solid #eee;
+      border-left: 4px solid #DDBF74;
+      color: #5D4D41;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,.12);
+      padding: 10px 12px;
+      font-size: 13px;
+      max-width: 360px;
+      display:none;
+    }
+    .toast.show{ display:block; }
+
+    pre{ white-space: pre-wrap; word-break: break-word; }
+        /* ✅ Nav：改成 fixed，避免下拉時重疊/抖動 */
+    #topBar{
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 70;
+      background: rgba(255,255,255,.82);
+      border-bottom: 1px solid rgba(239,231,214,.9);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .topbar-inner{
+      height: 64px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 12px;
+    }
+        /* ✅ 桌機取消毛玻璃，避免性能問題 */
+    @media (min-width: 768px) {
+      .backdrop-blur,
+      .backdrop-blur-sm,
+      .backdrop-blur-md,
+      .backdrop-blur-lg,
+      .backdrop-blur-xl,
+      .backdrop-blur-2xl,
+      .backdrop-blur-3xl {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+
+      /* 你的自訂 blur 也一起關 */
+      #topBar{
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      .modal-backdrop{
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <!-- Top bar -->
+  <header id="topBar" class="hidden">
+    <div class="max-w-5xl mx-auto px-4 topbar-inner">
+      <a href="./index.html" class="flex items-center gap-3 min-w-0">
+        <div class="w-10 h-10 rounded-full overflow-hidden border border-hami-line bg-white flex items-center justify-center">
+          <img src="https://hzbvhuagzuzsjldzswpo.supabase.co/storage/v1/object/public/logo/logo.png" alt="Hami" class="w-full h-full object-contain p-1" />
+        </div>
+        <div class="leading-tight min-w-0">
+          <p class="font-black text-hami-text text-lg truncate">Hami</p>
+          <p class="text-[11px] tracking-[0.22em] text-hami-muted font-bold truncate">後台管理</p>
+        </div>
+      </a>
+
+      <div class="flex items-center gap-2">
+        <button id="btnChangePwd" class="btn-jelly px-3 py-2 bg-white/80 border border-hami-line text-hami-text rounded-xl text-xs font-black hidden">
+          <span class="inline-flex items-center gap-2">
+            <i data-lucide="key" class="w-4 h-4"></i> 修改密碼
+          </span>
+        </button>
+
+        <button id="btnRefresh" class="btn-jelly px-3 py-2 bg-white/80 border border-hami-line text-hami-text rounded-xl text-xs font-black hidden">
+          <span class="inline-flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> 重新整理
+          </span>
+        </button>
+
+        <button id="btnSignOut" class="btn-jelly px-3 py-2 bg-white/80 border border-hami-line text-hami-text rounded-xl text-xs font-black hidden">
+          登出
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 pt-20 py-6 pb-24 space-y-5 min-h-[calc(100vh-4rem)] flex flex-col">
+    <div id="toast" class="toast"></div>
+
+    <section id="viewLoading" class="card p-6 text-center">
+      <p class="font-black text-hami-text">載入中...</p>
+      <p class="text-xs text-hami-muted font-bold mt-2">若超過 10 秒仍停住，請重新整理。</p>
+    </section>
+
+    <!-- Login -->
+    <section id="viewLogin" class="hidden flex-1 flex items-center justify-center">
+      <div class="w-full max-w-md">
+        <div class="card px-7 py-8 text-center relative overflow-hidden">
+          <div style="position:absolute; inset:0; pointer-events:none; background:
+            radial-gradient(circle at 20% 20%, rgba(232,215,165,.35), transparent 45%),
+            radial-gradient(circle at 85% 10%, rgba(221,191,116,.22), transparent 45%);"></div>
+
+          <div style="position:relative">
+            <div class="w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden bg-white border border-hami-line shadow-soft flex items-center justify-center">
+              <img src="https://hzbvhuagzuzsjldzswpo.supabase.co/storage/v1/object/public/logo/logo.png" alt="Hami" class="w-full h-full object-contain p-3" />
+            </div>
+
+            <div class="font-black text-hami-text text-xl">Hami 後台管理</div>
+            <div class="text-xs font-bold text-hami-muted mt-1">合約管理</div>
+
+            <!-- Step 1 -->
+            <div id="loginStepPick" class="mt-6">
+              <div class="space-y-3">
+                <button id="btnPickAdmin" class="btn-jelly w-full bg-white border border-hami-line text-hami-text py-4 rounded-2xl font-black flex items-center justify-center gap-2">
+                  <i data-lucide="shield" class="w-5 h-5"></i> 管理員登入
+                </button>
+                <button id="btnPickStaff" class="btn-jelly w-full bg-white border border-hami-line text-hami-text py-4 rounded-2xl font-black flex items-center justify-center gap-2">
+                  <i data-lucide="user" class="w-5 h-5"></i> 員工登入
+                </button>
+              </div>
+
+              <a href="./index.html" class="btn-jelly mt-6 w-full inline-flex items-center justify-center gap-2 text-sm font-black text-hami-muted">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-white border border-hami-line">←</span>
+                返回填寫頁面
+              </a>
+            </div>
+
+            <!-- Step 2 -->
+            <div id="loginStepPwd" class="hidden mt-6">
+              <div class="flex justify-center mb-3">
+                <span id="loginRolePill" class="pill"></span>
+              </div>
+
+              <div class="mt-3">
+                <input id="loginPassword" type="password" class="field text-center font-black tracking-widest" placeholder="請輸入密碼" />
+              </div>
+
+              <button id="btnLogin" class="btn-jelly mt-4 w-full btn btn-dark font-black">
+                <i data-lucide="log-in" class="w-5 h-5"></i> 確認登入
+              </button>
+
+              <p id="loginError" class="hidden text-center text-xs font-black text-hami-danger mt-3"></p>
+
+              <button id="btnSwitchRole" type="button" class="btn-jelly mt-5 w-full btn btn-ghost font-black">
+                ← 切換身分
+              </button>
+
+              <a href="./index.html" class="block mt-4 text-xs font-black text-hami-muted underline decoration-dotted">
+                返回填寫頁面
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- App -->
+    <section id="viewApp" class="hidden space-y-6">
+      <!-- Search + Tabs -->
+      <div class="space-y-3">
+        <div class="relative">
+          <i data-lucide="search" class="w-4 h-4 text-hami-muted absolute left-4 top-1/2 -translate-y-1/2"></i>
+          <input id="searchInput" type="text" class="w-full pl-11 pr-4 py-4 rounded-2xl border border-hami-line bg-white/80 backdrop-blur outline-none font-bold text-hami-text"
+            placeholder="搜尋：飼主姓名、電話、毛孩名字、合約ID" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button id="tabAgreements" class="btn-jelly py-3 rounded-2xl font-black text-sm bg-[#4A3C33] text-white border border-black/10 flex items-center justify-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4"></i> 合約列表
+          </button>
+          <button id="tabCustomers" class="btn-jelly py-3 rounded-2xl font-black text-sm bg-white/70 backdrop-blur text-hami-text border border-hami-line flex items-center justify-center gap-2">
+            <i data-lucide="users" class="w-4 h-4"></i> 顧客管理
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <div class="text-xs font-black text-hami-muted">
+            目前顯示：<span id="filterText" class="text-hami-text">只看未完成</span>
+          </div>
+
+          <input id="chkIncomplete" type="checkbox" class="hidden" checked />
+          <button id="btnToggleIncomplete" class="btn-jelly px-4 py-2 rounded-full bg-white/70 backdrop-blur border border-hami-line text-hami-text font-black text-xs">
+            切換顯示全部
+          </button>
+        </div>
+      </div>
+
+      <!-- Agreements Panel -->
+      <div id="agreementsPanel" class="space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="list" class="w-5 h-5 text-hami-text"></i>
+            <h2 class="text-lg font-black text-hami-text">合約紀錄</h2>
+          </div>
+        </div>
+
+        <div id="agreementsStats" class="text-xs font-black text-hami-muted"></div>
+
+        <div id="agreementsList" class="space-y-4 max-h-[68vh] overflow-y-auto custom-scrollbar pr-2"></div>
+
+        <div id="agreementsEmpty" class="hidden text-center py-12">
+          <div class="w-14 h-14 rounded-full bg-white/70 backdrop-blur border border-hami-line flex items-center justify-center mx-auto mb-3 text-hami-muted">
+            <i data-lucide="inbox" class="w-7 h-7"></i>
+          </div>
+          <p class="font-black text-hami-muted">沒有符合條件的紀錄</p>
+        </div>
+      </div>
+
+      <!-- Customers Panel -->
+      <div id="customersPanel" class="hidden space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i data-lucide="users" class="w-5 h-5 text-hami-text"></i>
+            <h2 class="text-lg font-black text-hami-text">顧客管理（依電話分組）</h2>
+          </div>
+        </div>
+
+        <div id="customersList" class="space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar pr-2"></div>
+
+        <div id="customersEmpty" class="hidden text-center py-12">
+          <div class="w-14 h-14 rounded-full bg-white/70 backdrop-blur border border-hami-line flex items-center justify-center mx-auto mb-3 text-hami-muted">
+            <i data-lucide="inbox" class="w-7 h-7"></i>
+          </div>
+          <p class="font-black text-hami-muted">尚無資料</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Customer Modal -->
+  <div id="customerModal" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="p-4 bg-white border-b border-hami-line flex items-center justify-between">
+        <div class="min-w-0">
+          <div class="text-xs font-black text-hami-muted">顧客明細</div>
+          <div id="customerModalTitle" class="font-black text-hami-text truncate"></div>
+          <div id="customerModalSub" class="text-xs font-bold text-hami-muted mt-1 truncate"></div>
+        </div>
+        <button id="btnCloseCustomerModal" class="btn-jelly w-10 h-10 rounded-full bg-white border border-hami-line flex items-center justify-center text-hami-muted">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto custom-scrollbar space-y-4">
+        <div class="rounded-2xl border border-hami-line bg-[#FFFEFB] p-4">
+          <div id="customerModalStats" class="grid sm:grid-cols-3 gap-3 text-sm font-black text-hami-text"></div>
+          <div id="customerModalPets" class="text-xs font-bold text-hami-muted mt-3"></div>
+        </div>
+
+        <div class="font-black text-hami-text">過往合約</div>
+        <div id="customerModalList" class="space-y-3"></div>
+        <div id="customerModalEmpty" class="hidden text-center py-10 text-hami-muted font-black">查無紀錄</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div id="detailModal" class="modal-backdrop">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="p-4 bg-white border-b border-hami-line flex items-center justify-between gap-3">
+        <div class="min-w-0">
+          <div class="text-xs font-black text-hami-muted">合約詳情（完整資料）</div>
+          <div id="detailTitle" class="font-black text-hami-text truncate"></div>
+          <div id="detailSub" class="text-xs font-bold text-hami-muted mt-1 truncate"></div>
+        </div>
+        <div class="shrink-0 flex items-center gap-2">
+          <button id="btnOpenContract" class="btn-jelly px-3 py-2 rounded-xl bg-[#4A3C33] text-white font-black text-xs flex items-center gap-2">
+            <i data-lucide="external-link" class="w-4 h-4"></i> 開啟合約副本
+          </button>
+          <button id="btnCloseDetail" class="btn-jelly w-10 h-10 rounded-full bg-white border border-hami-line flex items-center justify-center text-hami-muted">
+            <i data-lucide="x" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-5 overflow-y-auto custom-scrollbar space-y-5">
+        <!-- Status + Note -->
+        <div class="rounded-2xl border border-hami-line bg-[#FFFBF2] p-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black text-hami-muted">狀態：</span>
+              <span id="detailStatusBadge" class="badge b-pending">pending</span>
+              <span id="detailRoleHint" class="text-[11px] font-black text-hami-muted"></span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <button class="btn-jelly px-3 py-2 rounded-xl text-xs font-black border border-hami-line bg-white text-hami-text" data-status="pending">待處理</button>
+              <button class="btn-jelly px-3 py-2 rounded-xl text-xs font-black border border-hami-line bg-white text-hami-text" data-status="completed">已完成</button>
+              <button class="btn-jelly px-3 py-2 rounded-xl text-xs font-black border border-hami-line bg-white text-hami-text" data-status="cancelled">已取消</button>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="block text-xs font-black text-hami-muted mb-1">內部備註（admin_note）</label>
+            <textarea id="detailNote" rows="2" class="w-full px-3 py-2 rounded-xl border border-hami-line bg-white outline-none font-bold text-sm" placeholder="例如：客人習慣、毛孩注意事項、下次提醒..."></textarea>
+            <div class="text-[10px] text-hami-muted font-bold mt-1">
+              離開輸入框會自動儲存
+              <span id="noteSaving" class="ml-2 hidden">（儲存中...）</span>
+              <span id="noteSaved" class="ml-2 hidden text-hami-success">（已儲存）</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Owner (ALL) -->
+        <div class="rounded-2xl border border-hami-line p-4 bg-white">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="user" class="w-4 h-4 text-hami-text"></i>
+            <h3 class="font-black text-hami-text">飼主資料（客戶填寫）</h3>
+          </div>
+          <div id="detailOwnerAll" class="text-sm font-bold text-hami-text space-y-1"></div>
+        </div>
+
+        <!-- Pets (ALL) -->
+        <div class="rounded-2xl border border-hami-line p-4 bg-white">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="flex items-center gap-2">
+              <i data-lucide="paw-print" class="w-4 h-4 text-hami-text"></i>
+              <h3 class="font-black text-hami-text">寵物資料（客戶填寫 / 多寵）</h3>
+            </div>
+            <span id="detailPetsCount" class="badge">0 隻</span>
+          </div>
+
+          <div id="detailPetsAll" class="space-y-4"></div>
+
+          <div id="detailTotalWrap" class="hidden mt-3 rounded-2xl border border-hami-line bg-[#FFFBF2] p-3 flex items-center justify-between">
+            <div class="text-sm font-black text-hami-text">總金額</div>
+            <div id="detailTotalAmount" class="text-base font-black text-hami-text">NT$ 0</div>
+          </div>
+        </div>
+
+        <!-- Signature (no open button, no raw) -->
+        <div class="rounded-2xl border border-hami-line p-4 bg-white">
+          <div class="flex items-center gap-2 mb-2">
+            <i data-lucide="pen-tool" class="w-4 h-4 text-hami-text"></i>
+            <h3 class="font-black text-hami-text">簽名</h3>
+          </div>
+
+          <div class="bg-white border border-hami-line rounded-2xl p-3 flex justify-center">
+            <img id="detailSignatureImg" src="" alt="signature" class="max-h-[150px] object-contain" />
+          </div>
+          <p class="text-xs font-bold text-hami-muted text-right mt-2">
+            簽署時間：<span id="detailSignatureTime">-</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Change Password Modal (Admin only) -->
+  <div id="pwdModal" class="modal-backdrop">
+    <div class="modal" style="max-width:560px">
+      <div class="p-4 bg-white border-b border-hami-line flex items-center justify-between">
+        <div class="min-w-0">
+          <div class="text-xs font-black text-hami-muted">修改密碼</div>
+          <div id="pwdModalTitle" class="font-black text-hami-text">修改登入密碼</div>
+          <div class="text-xs font-bold text-hami-muted mt-1">僅管理員可操作</div>
+        </div>
+        <button id="btnClosePwdModal" class="btn-jelly w-10 h-10 rounded-full bg-white border border-hami-line flex items-center justify-center text-hami-muted">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <!-- target switch -->
+        <div class="rounded-2xl border border-hami-line bg-[#FFFBF2] p-3">
+          <div class="text-xs font-black text-hami-muted mb-2">修改對象</div>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="pwdTargetAdmin" type="button"
+              class="btn-jelly px-3 py-3 rounded-2xl text-xs font-black border border-hami-line bg-white text-hami-text">
+              管理員
+            </button>
+            <button id="pwdTargetStaff" type="button"
+              class="btn-jelly px-3 py-3 rounded-2xl text-xs font-black border border-hami-line bg-white text-hami-text">
+              員工
+            </button>
+          </div>
+          <div id="pwdTargetHint" class="mt-2 text-[11px] font-bold text-hami-muted leading-6">
+            請先選擇修改對象，並輸入該帳號目前的舊密碼才能修改。
+          </div>
+        </div>
+
+        <div>
+          <label id="pwdOldLabel" class="text-xs font-black text-hami-muted">舊密碼</label>
+          <input id="pwdOld" type="password" class="field mt-1 text-center font-black tracking-widest" placeholder="••••••" />
+        </div>
+
+        <div>
+          <label class="text-xs font-black text-hami-muted">新密碼</label>
+          <input id="pwdNew" type="password" class="field mt-1 text-center font-black tracking-widest" placeholder="至少 6 碼" />
+        </div>
+
+        <div>
+          <label class="text-xs font-black text-hami-muted">確認新密碼</label>
+          <input id="pwdConfirm" type="password" class="field mt-1 text-center font-black tracking-widest" placeholder="再次輸入新密碼" />
+        </div>
+
+        <p id="pwdError" class="hidden text-center text-xs font-black text-hami-danger"></p>
+
+        <div class="grid grid-cols-2 gap-2 pt-1">
+          <button id="btnPwdCancel" class="btn btn-ghost btn-jelly" type="button">取消</button>
+          <button id="btnPwdConfirm" class="btn btn-dark btn-jelly" type="button">確認修改</button>
+        </div>
+
+        <div class="text-[11px] font-bold text-hami-muted leading-6">
+          修改完成後系統會重新整理，請用新密碼重新登入一次。
+        </div>
+      </div>
+    </div>
+  </div>
+    </div>
+  </div>
+<script>
+  // =========================
+  // ✅ Supabase Config（Hami）
+  // =========================
+  const SUPABASE_URL = "https://hzbvhuagzuzsjldzswpo.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6YnZodWFnenV6c2psZHpzd3BvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTg0MzYsImV4cCI6MjA4ODk3NDQzNn0.mIPb6Mr5ZTJOA8Wb8QVnTR1KGmrFkxQeiAWlztM6rFk";
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  // ✅ sbPwd：用來「驗證員工舊密碼 → 更新員工新密碼」，不影響主 sb 的登入狀態
+  const sbPwd = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      storageKey: "sb-hami-admin-pwd-client",
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  });
+  const TABLE = "hami_grooming_agreements";
+  const FORM_URL = "./index.html";
+
+  // accounts（用於「隱藏 email 登入」）
+  const ADMIN_EMAIL = "hamiii0816@gmail.com";
+  const STAFF_EMAIL = "hamiii0816@staff.com";
+
+  // terms（合約副本用）
+  const HAMI_TERMS = [
+    "除本契約另有約定、特殊緊急情況、或不可抗力之情況外，未經飼主同意，店家不得將寵物帶離美容場所（同上店家地址）、轉售、轉讓或以其他變相方法作為其他用途。",
+    "飼主應於美容當日，將寵物領回，如經通知 1 日內未領回，依動保法第29條第一款通知主管機關，為飼主惡意棄養，相關罰金為 3 萬～15 萬元，其他衍生性費用將向飼主求償，例：人員加班費等。",
+    "寵物發生攻擊行為，如因飼主未善盡告知義務而造成店內人員傷亡、財物損毀等費用，將全額向飼主（寵物占有權人）求償。",
+    "店家應按本契約約定內容提供一定品質之美容服務。若因可歸責於店家或其受僱人之事由，導致其提供之美容服務有瑕疵，造成飼主發生損失的情況，飼主得要求減少價金或解除契約。",
+    "本契約之任一方得隨時終止本契約，若因本契約之中止而生損害之一方得向他方請求賠償。",
+    "於美容服務期間，如發現寵物有異常狀態，應立即通知飼主並妥善處理，如發生異常狀態的原因可歸責於店家之操作行為，店家應負損害賠償責任，例：摔傷寵物等。",
+    "因本契約所生之訴訟，雙方合意以地方法院為管轄法院。",
+    "美容契約相關法條，附件如店內張貼之公告，如有需求請自行拍照留存。"
+  ];
+
+  // =========================
+  // Helpers
+  // =========================
+  const $ = (id) => document.getElementById(id);
+
+  function toast(msg){
+    const el = $("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    setTimeout(() => el.classList.remove("show"), 2300);
+  }
+
+  function escapeHTML(value) {
+    return String(value ?? "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function safeJsonParseMaybe(payload){
+    if (!payload) return {};
+    if (typeof payload === "object") return payload;
+    if (typeof payload !== "string") return {};
+    try { const o = JSON.parse(payload); return (o && typeof o === "object") ? o : {}; }
+    catch { return {}; }
+  }
+
+  function normalizePhone(input) {
+    return String(input || "").replace(/[^\d]/g, "").trim();
+  }
+
+  function formatTWDateTime(iso) {
+    const s = String(iso || "").trim();
+    if (!s) return "-";
+    const d = new Date(s);
+    if (!Number.isFinite(d.getTime())) return "-";
+    return d.toLocaleString("zh-TW", { timeZone: "Asia/Taipei", hour12: false });
+  }
+  function nfTWD(n){
+    const x = Number(n || 0);
+    if (!Number.isFinite(x)) return "0";
+    try { return new Intl.NumberFormat("zh-TW").format(x); } catch { return String(x); }
+  }
+function mapChipStatus(status, no){
+  const s = String(status || "").toLowerCase().trim();
+  const chipNo = String(no || "").trim();
+
+  if (s === "has") return chipNo ? `有（${chipNo}）` : "有（未填號碼）";
+  if (s === "unknown") return "有（號碼不詳）";
+  if (s === "none") return "無";
+  return s ? s : "-";
+}
+  function statusBadgeClass(status){
+    const s = String(status || "pending");
+    if (s === "completed") return "badge b-completed";
+    if (s === "cancelled") return "badge b-cancelled";
+    return "badge b-pending";
+  }
+
+  function statusText(status){
+    const s = String(status || "pending");
+    if (s === "completed") return "已完成";
+    if (s === "cancelled") return "已取消";
+    return "待處理";
+  }
+
+  function isIncompleteStatus(status){
+    const s = String(status || "pending");
+    return !["completed","cancelled"].includes(s);
+  }
+
+  function getAgreementDerived(row){
+    const payload = safeJsonParseMaybe(row.payload);
+    const owner = payload.owner || {};
+    const pets = Array.isArray(payload.pets) ? payload.pets : [];
+
+    const ownerName = (row.owner_name || owner.owner_name || "").toString().trim();
+    const phone = normalizePhone(row.phone || owner.owner_phone || "");
+
+    const petNames =
+      (row.pet_names || "").toString().trim() ||
+      pets.map(p => (p?.pet_name || "").toString().trim()).filter(Boolean).join("、");
+
+    // services summary (union)
+    const svcSet = new Set();
+    pets.forEach(p => (Array.isArray(p?.services) ? p.services : []).forEach(x => x && svcSet.add(x)));
+    const servicesSummary = Array.from(svcSet).slice(0, 4).join("、"); // 列表最多顯示 4 個
+
+    const totalAmount = pets.reduce((sum, p) => {
+      const raw = (p?.service_amount ?? "").toString().trim();
+      if (!raw) return sum;
+      const n = Number(raw);
+      return Number.isFinite(n) ? sum + n : sum;
+    }, 0);
+
+    return {
+      payload,
+      owner,
+      pets,
+      ownerName: ownerName || "（未填飼主）",
+      phone: phone || "-",
+      petNames: petNames || "-",
+      servicesSummary: servicesSummary || "-",
+      totalAmount
+    };
+  }
+
+  // =========================
+  // Contract Copy (open window)
+  // =========================
+  function generateContractHTML(payload) {
+    const e = escapeHTML;
+    const owner = payload?.owner || {};
+    const pets = Array.isArray(payload?.pets) ? payload.pets : [];
+    const LOGO_URL = "https://hzbvhuagzuzsjldzswpo.supabase.co/storage/v1/object/public/logo/logo.png";
+
+    const PARTY_B = {
+      name: "Hami 寵物美容",
+      principal: "許傳侑",
+      phone: "03-4818196",
+      address: "桃園市楊梅區梅獅路二段70號1樓",
+      hours: "10:00-18:00",
+      emergencyClinicName: "人人寵物獸醫－埔心分院",
+      emergencyClinicAddress: "326桃園市楊梅區永美路272號"
+    };
+
+    const safe = (v, fallback="-") => {
+      const s = String(v ?? "").trim();
+      return s ? e(s) : fallback;
+    };
+
+    const signatureImg = String(payload?.signature_url || payload?.signature || "").trim();
+    const signedAt = formatTWDateTime(payload?.signature_signed_at) || String(payload?.sign_time || "--");
+
+    const totalAmount = pets.reduce((sum, pt) => {
+      const raw = (pt?.service_amount ?? "").toString().trim();
+      if (!raw) return sum;
+      const n = Number(raw);
+      return Number.isFinite(n) ? sum + n : sum;
+    }, 0);
+
+    const totalHtml =
+      pets.length >= 2
+        ? `
+          <div style="margin:14px 0 8px 0;padding:12px;border:1px solid #EFE7D6;border-radius:12px;background:#FFFBF2;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="font-size:13px;font-weight:900;color:#5D4D41;">總金額</div>
+            <div style="font-size:16px;font-weight:900;color:#5D4D41;">NT$ ${e(nfTWD(totalAmount))}</div>
+          </div>
+        `
+        : "";
+
+    const renderKVTable = (rows) => `
+      <table width="100%" cellpadding="8" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
+        ${rows.map(([k,v]) => `
+          <tr>
+            <td style="width:28%;color:#8D7E73;border-bottom:1px solid #F0F0F0;background:#FFFCF6;font-weight:800;">${e(k)}</td>
+            <td style="border-bottom:1px solid #F0F0F0;color:#5D4D41;font-weight:800;">${v}</td>
+          </tr>
+        `).join("")}
+      </table>
+    `;
+
+    const ownerRows = [
+      ["姓名", safe(owner.owner_name)],
+      ["手機", safe(owner.owner_phone)],
+      ["電子信箱", safe(owner.owner_email, "未提供")],
+      ["身分證字號", safe(owner.owner_id)],
+      ["通訊地址", safe(owner.owner_address)],
+      ["緊急聯絡人", safe(owner.emergency_name)],
+      ["緊急聯絡人電話", safe(owner.emergency_phone)],
+      ["指定就醫醫院", safe(owner.preferred_hospital, "無（依店家指定）")]
+    ];
+
+    const partyBRows = [
+      ["乙方店家", e(PARTY_B.name)],
+      ["負責人", e(PARTY_B.principal)],
+      ["聯絡電話", e(PARTY_B.phone)],
+      ["地址", e(PARTY_B.address)],
+      ["營業時間", e(PARTY_B.hours)],
+      ["特約緊急送醫", e(PARTY_B.emergencyClinicName)],
+      ["特約緊急送醫地址", e(PARTY_B.emergencyClinicAddress)]
+    ];
+
+    const termsHtml = `
+      <ol style="margin:8px 0 0 18px;padding:0;line-height:1.8;color:#5D4D41;font-size:13px;">
+        ${HAMI_TERMS.map((t) => `<li style="margin:0 0 8px 0;">${e(t)}</li>`).join("")}
+      </ol>
+      <div style="margin-top:10px;padding:10px;border:1px solid #EFE7D6;border-radius:10px;background:#FFFBF2;font-size:12px;color:#8D7E73;line-height:1.7;">
+        ※ 本副本為系統輸出，建議截圖或列印留存。
+      </div>
+    `;
+
+    const renderPet = (p, i) => {
+      const services = Array.isArray(p?.services) ? p.services : [];
+      const servicesText = services.filter(Boolean).join("、");
+      const serviceFinal = services.includes("其他項目")
+        ? `${safe(servicesText, "未填")}（${safe(p?.service_type_other, "未填")}）`
+        : safe(servicesText, "未填");
+
+      const pickup =
+        p?.pickup_mode === "notify"
+          ? "另行通知美容完成接回時間"
+          : safe(p?.pickup_time, "未填");
+
+      const payment =
+        p?.payment === "其他"
+          ? `其他（${safe(p?.payment_other, "未填")}）`
+          : safe(p?.payment, "未填");
+
+      const rows = [
+        ["寵物名字", safe(p?.pet_name)],
+        ["寵物種類", safe(p?.pet_type)],
+        ["品種", safe(p?.pet_breed)],
+        ["毛長", safe(p?.pet_hair_length || p?.pet_color)],
+        ["年齡（歲）", safe(p?.pet_age)],
+        ["性別", safe(p?.pet_sex)],
+        ["結紮", safe(p?.pet_neuter)],
+        ["親人", safe(p?.pet_friendly_human)],
+        ["親狗", safe(p?.pet_friendly_dog)],
+        ["具攻擊性", safe(p?.pet_aggressive)],
+        ["過往病史", safe(p?.pet_medical_history)],
+        ["病史描述", safe(p?.pet_medical_note, "無/未填")],
+        ["本次服務項目", escapeHTML(serviceFinal)],
+        ["預計接回時間", escapeHTML(pickup)],
+        ["支付方式", escapeHTML(payment)],
+        ["支付金額（NT$）", `NT$ ${safe(p?.service_amount, "0")}`]
+      ];
+
+      return `
+        <div style="border:1px solid #EFE7D6;border-radius:12px;padding:14px;margin:14px 0;background:#FFFEFB;">
+          <div style="font-size:16px;font-weight:900;color:#5D4D41;margin-bottom:10px;">
+            毛孩 ${i + 1}：${safe(p?.pet_name, "未填")}
+          </div>
+          ${renderKVTable(rows)}
+        </div>
+      `;
+    };
+
+    return `
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Hami 寵物美容｜契約副本</title>
+</head>
+<body style="margin:0;padding:20px;background:#FFFDF8;color:#5D4D41;font-family:Arial,'Noto Sans TC',sans-serif;">
+  <div style="max-width:860px;margin:0 auto;background:#ffffff;border:1px solid #EFE7D6;border-radius:14px;overflow:hidden;">
+    <div style="background:#5D4D41;color:#fff;padding:16px 18px;display:flex;align-items:center;gap:12px;">
+      <img src="${e(LOGO_URL)}" alt="Hami logo" style="width:44px;height:44px;border-radius:12px;background:#fff;object-fit:contain;" />
+      <div style="min-width:0;">
+        <div style="font-size:18px;font-weight:900;line-height:1.2;">Hami 寵物美容｜寵物美容定型化契約（副本）</div>
+        <div style="font-size:12px;color:#F6EBC6;font-weight:800;margin-top:4px;">（系統輸出副本）</div>
+      </div>
+    </div>
+
+    <div style="padding:18px;">
+      <h2 style="margin:0 0 10px 0;font-size:16px;">甲方（消費者）資料</h2>
+      ${renderKVTable(ownerRows)}
+
+      <h2 style="margin:18px 0 10px 0;font-size:16px;">乙方資訊</h2>
+      ${renderKVTable(partyBRows)}
+
+      <h2 style="margin:18px 0 10px 0;font-size:16px;">毛孩與本次服務內容</h2>
+      ${pets.length ? pets.map(renderPet).join("") : `<div style="color:#8D7E73;font-weight:900;">（無毛孩資料）</div>`}
+
+      ${totalHtml}
+
+      <h2 style="margin:18px 0 10px 0;font-size:16px;">契約條款全文</h2>
+      ${termsHtml}
+
+      <h2 style="margin:18px 0 10px 0;font-size:16px;">簽名與簽署時間</h2>
+      <div style="border:1px dashed #DCCFB5;padding:12px;border-radius:12px;background:#FFFEFB;">
+        <div style="font-size:12px;color:#8D7E73;font-weight:900;margin-bottom:8px;">飼主電子簽名檔</div>
+        ${
+          signatureImg
+            ? `<img src="${e(signatureImg)}" alt="signature" style="max-height:130px;max-width:100%;object-fit:contain;background:#FFF9F2;border-radius:10px;padding:8px;border:1px solid #EFE7D6;" />`
+            : `<div style="color:#D9534F;font-weight:900;">（無簽名檔）</div>`
+        }
+        <div style="margin-top:10px;font-size:12px;color:#8D7E73;line-height:1.8;font-weight:900;">
+          簽署時間：${e(signedAt)}
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+  }
+
+  // =========================
+  // State
+  // =========================
+  let currentUser = null;
+  let currentRole = "staff"; // staff/admin
+  let selectedLoginEmail = ""; // hidden
+  let selectedCustomerPhone = "";
+  let agreements = [];
+  let selectedAgreement = null;
+
+  // =========================
+  // Auth / Boot
+  // =========================
+  async function ensureSession(){
+    const { data } = await sb.auth.getSession();
+    return data?.session || null;
+  }
+
+  function getRoleFromUser(user){
+    const email = (user?.email || "").toLowerCase();
+    if (email === ADMIN_EMAIL.toLowerCase()) return "admin";
+    if (email === STAFF_EMAIL.toLowerCase()) return "staff";
+    return "staff";
+  }
+
+  async function loadUser(){
+    const { data, error } = await sb.auth.getUser();
+    if (error) return null;
+    return data?.user || null;
+  }
+
+  async function bootApp(){
+    $("viewLoading").classList.add("hidden");
+
+    const session = await ensureSession();
+    if (!session){
+      showLogin();
+      return;
+    }
+
+    const user = await loadUser();
+    if (!user){
+      showLogin();
+      return;
+    }
+
+    currentUser = user;
+    currentRole = getRoleFromUser(user);
+
+    showApp();
+    await refreshData();
+  }
+
+  function showLogin(){
+    $("viewLogin").classList.remove("hidden");
+    $("viewApp").classList.add("hidden");
+    $("topBar").classList.add("hidden");
+    $("btnRefresh").classList.add("hidden");
+    $("btnSignOut").classList.add("hidden");
+    $("btnChangePwd").classList.add("hidden");
+    $("viewLoading").classList.add("hidden");
+  }
+
+  function showApp(){
+    $("viewLogin").classList.add("hidden");
+    $("viewApp").classList.remove("hidden");
+    $("topBar").classList.remove("hidden");
+    $("btnRefresh").classList.remove("hidden");
+    $("btnSignOut").classList.remove("hidden");
+
+    // ✅ 只有管理員顯示修改密碼
+    const isAdmin = (currentUser?.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    if (isAdmin) $("btnChangePwd").classList.remove("hidden");
+    else $("btnChangePwd").classList.add("hidden");
+  }
+  async function login(email, password){
+    setLoginError("");
+    setLoginBusy(true);
+
+    try{
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      await bootApp();
+      toast("登入成功");
+    } catch (e){
+      setLoginError("登入失敗：帳號或密碼錯誤");
+    } finally {
+      setLoginBusy(false);
+    }
+  }
+
+  async function signOut(){
+    await sb.auth.signOut();
+    location.reload();
+  }
+  function setPwdError(msg){
+    const el = $("pwdError");
+    if (!el) return;
+    if (!msg){
+      el.textContent = "";
+      el.classList.add("hidden");
+    } else {
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+  }
+
+  // =========================
+  // Change password (admin/staff)
+  // =========================
+  let pwdTarget = "staff"; // "admin" | "staff"
+
+  function setPwdTarget(target){
+    pwdTarget = (target === "admin") ? "admin" : "staff";
+    syncPwdTargetUI();
+  }
+
+  function syncPwdTargetUI(){
+    const btnA = $("pwdTargetAdmin");
+    const btnS = $("pwdTargetStaff");
+
+    const activeCls = "ring-2 ring-[#DDBF74] bg-[#FFF9EA]";
+    const inactiveCls = "bg-white";
+
+    if (pwdTarget === "admin"){
+      btnA.classList.add(...activeCls.split(" "));
+      btnA.classList.remove(...inactiveCls.split(" "));
+      btnS.classList.remove(...activeCls.split(" "));
+      btnS.classList.add(...inactiveCls.split(" "));
+
+      $("pwdModalTitle").textContent = "修改「管理員」登入密碼";
+      $("pwdOldLabel").textContent = "舊密碼（管理員目前密碼）";
+      $("pwdTargetHint").textContent = "請輸入「管理員目前的舊密碼」才能修改。修改完成後會重新整理，請用新密碼重新登入。";
+    } else {
+      btnS.classList.add(...activeCls.split(" "));
+      btnS.classList.remove(...inactiveCls.split(" "));
+      btnA.classList.remove(...activeCls.split(" "));
+      btnA.classList.add(...inactiveCls.split(" "));
+
+      $("pwdModalTitle").textContent = "修改「員工」登入密碼";
+      $("pwdOldLabel").textContent = "舊密碼（員工目前密碼）";
+      $("pwdTargetHint").textContent = "你需要輸入「員工目前的舊密碼」才能修改。修改完成後會重新整理，請使用新密碼重新登入一次。";
+    }
+  }
+
+  function openPwdModal(){
+    // 預設開啟：員工（你常用改員工）
+    setPwdTarget("staff");
+
+    $("pwdOld").value = "";
+    $("pwdNew").value = "";
+    $("pwdConfirm").value = "";
+    setPwdError("");
+
+    openModal("pwdModal");
+    setTimeout(() => $("pwdOld")?.focus(), 50);
+  }
+
+  function closePwdModal(){
+    closeModal("pwdModal");
+  }
+
+  async function handleChangePassword(){
+    setPwdError("");
+
+    const oldPwd = ($("pwdOld").value || "").trim();
+    const newPwd = ($("pwdNew").value || "").trim();
+    const confirmPwd = ($("pwdConfirm").value || "").trim();
+
+    if (!oldPwd) return setPwdError("請輸入舊密碼");
+    if (!newPwd || newPwd.length < 6) return setPwdError("新密碼至少 6 碼");
+    if (newPwd !== confirmPwd) return setPwdError("確認新密碼不一致");
+
+    const targetEmail = (pwdTarget === "admin") ? ADMIN_EMAIL : STAFF_EMAIL;
+
+    $("btnPwdConfirm").disabled = true;
+    $("btnPwdConfirm").classList.add("opacity-60");
+    $("btnPwdConfirm").textContent = "處理中...";
+
+    try {
+      // 保險：先清掉 sbPwd 可能殘留的 session
+      try { await sbPwd.auth.signOut(); } catch {}
+
+      // 1) 用「目標帳號 + 舊密碼」登入（不影響主 sb）
+      const { error: signErr } = await sbPwd.auth.signInWithPassword({
+        email: targetEmail,
+        password: oldPwd
+      });
+      if (signErr) throw new Error("舊密碼錯誤");
+
+      // 2) 更新該帳號密碼
+      const { error: upErr } = await sbPwd.auth.updateUser({ password: newPwd });
+      if (upErr) throw upErr;
+
+      // 3) 登出 sbPwd
+      await sbPwd.auth.signOut();
+
+      alert(`✅ ${pwdTarget === "admin" ? "管理員" : "員工"} 密碼已修改完成。\n\n系統將重新整理，請用新密碼重新登入一次。`);
+
+      // 4) 重新整理前先登出主 session（確保重新登入）
+      await sb.auth.signOut();
+      window.location.reload();
+    } catch (e){
+      setPwdError("修改失敗：" + (e?.message || "請稍後再試"));
+    } finally {
+      $("btnPwdConfirm").disabled = false;
+      $("btnPwdConfirm").classList.remove("opacity-60");
+      $("btnPwdConfirm").textContent = "確認修改";
+    }
+  }
+  function closePwdModal(){
+    closeModal("pwdModal");
+  }
+
+  async function handleChangeStaffPassword(){
+    setPwdError("");
+
+    const oldPwd = ($("pwdOld").value || "").trim();
+    const newPwd = ($("pwdNew").value || "").trim();
+    const confirmPwd = ($("pwdConfirm").value || "").trim();
+
+    if (!oldPwd) return setPwdError("請輸入員工舊密碼");
+    if (!newPwd || newPwd.length < 6) return setPwdError("新密碼至少 6 碼");
+    if (newPwd !== confirmPwd) return setPwdError("確認新密碼不一致");
+
+    $("btnPwdConfirm").disabled = true;
+    $("btnPwdConfirm").classList.add("opacity-60");
+    $("btnPwdConfirm").textContent = "處理中...";
+
+    try {
+      // 保險：先清掉 sbPwd 可能殘留的 session
+      try { await sbPwd.auth.signOut(); } catch {}
+
+      // 1) 用「員工帳號 + 舊密碼」登入（你要的：只需輸入員工密碼）
+      const { error: signErr } = await sbPwd.auth.signInWithPassword({
+        email: STAFF_EMAIL,
+        password: oldPwd
+      });
+      if (signErr) throw new Error("員工舊密碼錯誤");
+
+      // 2) 更新員工密碼
+      const { error: upErr } = await sbPwd.auth.updateUser({ password: newPwd });
+      if (upErr) throw upErr;
+
+      // 3) 登出 sbPwd
+      await sbPwd.auth.signOut();
+
+      alert("✅ 員工密碼已修改完成。\n\n系統將重新整理，請用新密碼重新登入一次。");
+
+      // 4) 依你需求：修改完成後重新整理，請他重新登入
+      await sb.auth.signOut();
+      window.location.reload();
+    } catch (e){
+      setPwdError("修改失敗：" + (e?.message || "請稍後再試"));
+    } finally {
+      $("btnPwdConfirm").disabled = false;
+      $("btnPwdConfirm").classList.remove("opacity-60");
+      $("btnPwdConfirm").textContent = "確認修改";
+    }
+  }
+  function setLoginBusy(b){
+    $("btnLogin").disabled = b;
+    $("btnLogin").classList.toggle("opacity-60", b);
+    $("btnLogin").innerHTML = b
+      ? `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> 登入中...`
+      : `<i data-lucide="log-in" class="w-5 h-5"></i> 確認登入`;
+    lucide.createIcons();
+  }
+
+  function setLoginError(msg){
+    const el = $("loginError");
+    if (!msg){
+      el.textContent = "";
+      el.classList.add("hidden");
+    } else {
+      el.textContent = msg;
+      el.classList.remove("hidden");
+    }
+  }
+
+  // =========================
+  // Data
+  // =========================
+  async function fetchAgreements(){
+    // 取最新 500 筆（夠用、速度快）
+    const { data, error } = await sb
+      .from(TABLE)
+      .select("id, created_at, phone, owner_name, pet_names, payload, signature_url, status, admin_note")
+      .order("created_at", { ascending: false })
+      .limit(500);
+
+    if (error) throw error;
+    agreements = (data || []).map(r => ({ ...r, payload: safeJsonParseMaybe(r.payload) }));
+  }
+
+  function renderStats(list){
+    const total = list.length;
+    const pending = list.filter(x => (x.status || "pending") === "pending").length;
+    const completed = list.filter(x => x.status === "completed").length;
+    const cancelled = list.filter(x => x.status === "cancelled").length;
+
+    $("agreementsStats").innerHTML =
+      `<span class="font-black text-hami-text">${total}</span> 筆｜` +
+      `待處理 <span class="text-[#B45309]">${pending}</span>、` +
+      `已完成 <span class="text-gray-600">${completed}</span>、` +
+      `已取消 <span class="text-[#B91C1C]">${cancelled}</span>`;
+  }
+
+  function applyAgreementFilters(){
+    const q = ($("searchInput").value || "").trim();
+    const onlyIncomplete = $("chkIncomplete").checked;
+
+    const filtered = agreements.filter(r => {
+      const d = getAgreementDerived(r);
+      const id = (r.id || "").toString();
+
+      const matchQ = !q
+        || d.ownerName.includes(q)
+        || d.phone.includes(q)
+        || d.petNames.includes(q)
+        || id.includes(q);
+
+      const matchStatus = onlyIncomplete ? isIncompleteStatus(r.status) : true;
+      return matchQ && matchStatus;
+    });
+
+    // 排序：pending 先，再 created_at 新到舊
+    const pri = (s) => (String(s||"pending")==="pending" ? 0 : String(s)==="completed" ? 1 : 2);
+    filtered.sort((a,b) => {
+      const pa = pri(a.status), pb = pri(b.status);
+      if (pa !== pb) return pa - pb;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
+
+    return filtered;
+  }
+
+  function renderAgreements(){
+    const list = applyAgreementFilters();
+    renderStats(list);
+
+    const container = $("agreementsList");
+    container.innerHTML = "";
+
+    if (list.length === 0){
+      $("agreementsEmpty").classList.remove("hidden");
+      return;
+    }
+    $("agreementsEmpty").classList.add("hidden");
+
+    list.forEach(r => {
+      const d = getAgreementDerived(r);
+      const created = formatTWDateTime(r.created_at);
+      const status = r.status || "pending";
+      const petsCount = d.pets.length || (d.petNames && d.petNames !== "-" ? d.petNames.split("、").length : 0);
+
+      const strip =
+        status === "completed" ? "bg-gray-300" :
+        status === "cancelled" ? "bg-rose-300" :
+        "bg-amber-300";
+
+      const div = document.createElement("div");
+      div.className = "relative overflow-hidden rounded-[1.6rem] border border-hami-line bg-white/80 backdrop-blur shadow-soft hover:border-[#DDBF74] transition cursor-pointer";
+      div.innerHTML = `
+        <div class="absolute left-0 top-0 bottom-0 w-2 ${strip}"></div>
+        <div class="p-5 pl-6">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div class="text-[11px] font-black text-hami-muted tracking-widest mb-1">${created}</div>
+
+              <div class="text-xl font-black text-hami-text truncate">
+                ${escapeHTML(d.petNames)}
+                ${petsCount >= 2 ? `<span class="ml-2 badge">${petsCount}隻</span>` : ``}
+              </div>
+
+              <div class="mt-2 text-xs font-bold text-hami-muted flex flex-wrap gap-x-3 gap-y-1">
+                <span class="inline-flex items-center gap-1"><i data-lucide="user" class="w-3.5 h-3.5"></i>${escapeHTML(d.ownerName)}</span>
+                <span class="inline-flex items-center gap-1"><i data-lucide="phone" class="w-3.5 h-3.5"></i>${escapeHTML(d.phone)}</span>
+              </div>
+
+              <div class="mt-3 text-[12px] font-bold text-hami-muted">
+                ✂️ ${escapeHTML(d.servicesSummary)}
+              </div>
+            </div>
+
+            <div class="shrink-0 text-right">
+              <div class="font-black text-hami-text text-lg">NT$ ${escapeHTML(nfTWD(d.totalAmount))}</div>
+              <div class="${statusBadgeClass(status)} inline-block mt-2">${escapeHTML(statusText(status))}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      div.onclick = () => openDetail(r.id);
+      container.appendChild(div);
+    });
+
+    lucide.createIcons();
+  }
+
+  function groupCustomers(){
+    const q = ($("searchInput").value || "").trim();
+
+    const groups = {};
+    agreements.forEach(r => {
+      const d = getAgreementDerived(r);
+      const phone = normalizePhone(d.phone);
+      if (!phone) return;
+
+      if (!groups[phone]){
+        groups[phone] = {
+          phone,
+          ownerName: d.ownerName || "-",
+          pets: new Set(),
+          count: 0,
+          total: 0,
+          latest: r.created_at
+        };
+      }
+
+      const petNames = (d.petNames || "").split("、").map(x => x.trim()).filter(Boolean);
+      petNames.forEach(n => groups[phone].pets.add(n));
+
+      groups[phone].count += 1;
+      groups[phone].total += (d.totalAmount || 0);
+      if (new Date(r.created_at) > new Date(groups[phone].latest)) groups[phone].latest = r.created_at;
+    });
+
+    let arr = Object.values(groups).sort((a,b) => new Date(b.latest) - new Date(a.latest));
+    if (q){
+      arr = arr.filter(c =>
+        c.phone.includes(q) ||
+        (c.ownerName || "").includes(q) ||
+        Array.from(c.pets).join("、").includes(q)
+      );
+    }
+    return arr;
+  }
+
+  function renderCustomers(){
+    const list = groupCustomers();
+    const container = $("customersList");
+    container.innerHTML = "";
+
+    if (list.length === 0){
+      $("customersEmpty").classList.remove("hidden");
+      return;
+    }
+    $("customersEmpty").classList.add("hidden");
+
+    list.forEach(c => {
+      const pets = Array.from(c.pets).filter(Boolean).join("、") || "-";
+      const div = document.createElement("div");
+      div.className = "rounded-2xl border border-hami-line bg-white/80 backdrop-blur p-4 shadow-soft cursor-pointer hover:border-[#DDBF74] transition";
+      div.innerHTML = `
+        <div class="flex justify-between items-start gap-3">
+          <div class="min-w-0">
+            <div class="font-black text-hami-text truncate">${escapeHTML(c.ownerName)}</div>
+            <div class="text-xs font-bold text-hami-muted mt-1">${escapeHTML(c.phone)}</div>
+            <div class="text-[11px] font-bold text-hami-muted mt-2 truncate">毛孩：${escapeHTML(pets)}</div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="text-xs font-black text-hami-muted">來訪 ${c.count} 次</div>
+            <div class="font-black text-hami-text mt-1">總計 NT$ ${escapeHTML(nfTWD(c.total))}</div>
+          </div>
+        </div>
+      `;
+      div.onclick = () => openCustomerModal(c.phone);
+      container.appendChild(div);
+    });
+
+    lucide.createIcons();
+  }
+
+  function getAgreementsByPhone(phone){
+    const p = normalizePhone(phone);
+    return agreements
+      .filter(r => normalizePhone(getAgreementDerived(r).phone) === p)
+      .sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+  }
+
+  // =========================
+  // Modals
+  // =========================
+  function openModal(id){ $(id).classList.add("show"); lucide.createIcons(); }
+  function closeModal(id){ $(id).classList.remove("show"); }
+
+  function openCustomerModal(phone){
+    selectedCustomerPhone = normalizePhone(phone);
+    renderCustomerModal(selectedCustomerPhone);
+    openModal("customerModal");
+  }
+
+  function renderCustomerModal(phone){
+    const list = getAgreementsByPhone(phone);
+
+    if (!list.length){
+      $("customerModalTitle").textContent = phone || "-";
+      $("customerModalSub").textContent = "";
+      $("customerModalStats").innerHTML = "";
+      $("customerModalPets").textContent = "";
+      $("customerModalList").innerHTML = "";
+      $("customerModalEmpty").classList.remove("hidden");
+      return;
+    }
+    $("customerModalEmpty").classList.add("hidden");
+
+    const d0 = getAgreementDerived(list[0]);
+    $("customerModalTitle").textContent = d0.ownerName || "-";
+    $("customerModalSub").textContent = `電話：${phone}`;
+
+    const count = list.length;
+    const total = list.reduce((sum, r) => sum + (getAgreementDerived(r).totalAmount || 0), 0);
+    const latest = formatTWDateTime(list[0].created_at);
+
+    $("customerModalStats").innerHTML = `
+      <div class="rounded-xl bg-[#FFFBF2] border border-hami-line p-3">來訪次數：<span class="text-hami-text">${count}</span></div>
+      <div class="rounded-xl bg-[#FFFBF2] border border-hami-line p-3">累計金額：<span class="text-hami-text">NT$ ${escapeHTML(nfTWD(total))}</span></div>
+      <div class="rounded-xl bg-[#FFFBF2] border border-hami-line p-3">最近一次：<span class="text-hami-text">${escapeHTML(latest)}</span></div>
+    `;
+
+    // pets set
+    const petSet = new Set();
+    list.forEach(r => {
+      const d = getAgreementDerived(r);
+      (d.petNames || "").split("、").map(x => x.trim()).filter(Boolean).forEach(n => petSet.add(n));
+    });
+    $("customerModalPets").textContent = `毛孩：${Array.from(petSet).join("、") || "-"}`;
+
+    const container = $("customerModalList");
+    container.innerHTML = "";
+
+    list.forEach(r => {
+      const d = getAgreementDerived(r);
+      const status = r.status || "pending";
+
+      const div = document.createElement("div");
+      div.className = "rounded-2xl border border-hami-line bg-white/80 backdrop-blur p-4 shadow-soft cursor-pointer hover:border-[#DDBF74] transition";
+      div.innerHTML = `
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0">
+            <div class="text-[11px] font-black text-hami-muted tracking-widest mb-1">${escapeHTML(formatTWDateTime(r.created_at))}</div>
+            <div class="text-lg font-black text-hami-text truncate">${escapeHTML(d.petNames)}</div>
+            <div class="text-xs font-bold text-hami-muted mt-1">✂️ ${escapeHTML(d.servicesSummary)}</div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="font-black text-hami-text">NT$ ${escapeHTML(nfTWD(d.totalAmount))}</div>
+            <div class="${statusBadgeClass(status)} inline-block mt-2">${escapeHTML(statusText(status))}</div>
+          </div>
+        </div>
+      `;
+      div.onclick = () => {
+        closeModal("customerModal");
+        openDetail(r.id);
+      };
+      container.appendChild(div);
+    });
+
+    lucide.createIcons();
+  }
+  function kvHtml(label, value){
+    const v = (value === null || value === undefined || value === "") ? "-" : String(value);
+    return `
+      <div class="kv">
+        <div class="k">${escapeHTML(label)}</div>
+        <div class="v">${escapeHTML(v)}</div>
+      </div>
+    `;
+  }
+
+  function renderOwnerAll(owner, row){
+    const o = owner || {};
+    return [
+      kvHtml("飼主姓名", o.owner_name || row.owner_name || "-"),
+      kvHtml("聯絡手機", normalizePhone(o.owner_phone || row.phone) || "-"),
+      kvHtml("電子信箱", o.owner_email || "-"),
+      kvHtml("身分證字號", o.owner_id || "-"),
+      kvHtml("通訊地址", o.owner_address || "-"),
+      kvHtml("緊急聯絡人", o.emergency_name || "-"),
+      kvHtml("緊急聯絡人電話", o.emergency_phone || "-"),
+      kvHtml("指定就醫醫院", o.preferred_hospital || "-"),
+      kvHtml("建立時間", formatTWDateTime(row.created_at))
+    ].join("");
+  }
+
+function renderPetAll(pet, idx){
+  const p = pet || {};
+  const services = Array.isArray(p.services) ? p.services : [];
+
+  const pickup =
+    (p.pickup_mode === "notify")
+      ? "另行通知美容完成接回時間"
+      : (p.pickup_time || "-");
+
+  const payment =
+    (p.payment === "其他")
+      ? `其他（${p.payment_other || "未填"}）`
+      : (p.payment || "-");
+
+  const chipText = mapChipStatus(p.pet_chip_status, p.pet_chip_no);
+
+  return `
+    <div class="rounded-2xl border border-hami-line bg-[#FFFEFB] p-4">
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <div class="font-black text-hami-text">
+          ${idx + 1}. ${escapeHTML((p.pet_name || "").toString().trim() || `寵物 ${idx + 1}`)}
+        </div>
+        <span class="badge">${escapeHTML((p.pet_type || "-").toString())}</span>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <div class="text-xs font-black text-hami-muted mb-2">基本資料</div>
+          ${kvHtml("品種", p.pet_breed || "-")}
+          ${kvHtml("毛長", p.pet_hair_length || "-")}
+          ${kvHtml("年齡（歲）", (p.pet_age ?? "-"))}
+          ${kvHtml("晶片", chipText)}
+          ${kvHtml("性別", p.pet_sex || "-")}
+          ${kvHtml("結紮", p.pet_neuter || "-")}
+        </div>
+
+        <div>
+          <div class="text-xs font-black text-hami-muted mb-2">性格/病史</div>
+          ${kvHtml("親人", p.pet_friendly_human || "-")}
+          ${kvHtml("親狗", p.pet_friendly_dog || "-")}
+          ${kvHtml("具攻擊性", p.pet_aggressive || "-")}
+          ${kvHtml("不喜歡碰觸", p.pet_dislike_touch || "-")}
+          ${kvHtml("過往病史", p.pet_medical_history || "-")}
+          ${kvHtml("病史描述", p.pet_medical_note || "-")}
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <div class="text-xs font-black text-hami-muted mb-2">本次服務</div>
+        ${kvHtml("服務項目", services.join("、") || "-")}
+        ${kvHtml("其他項目說明", p.service_type_other || "-")}
+        ${kvHtml("預計接回時間", pickup)}
+        ${kvHtml("支付方式", payment)}
+        ${kvHtml("支付金額（NT$）", (p.service_amount ?? "-"))}
+        ${kvHtml("美容日期", p.grooming_date || "-")}
+        ${kvHtml("備註", p.pet_note || "-")}
+      </div>
+    </div>
+  `;
+}
+  function buildKV(label, value){
+    const v = (value === null || value === undefined || value === "") ? "-" : value;
+    return `<div class="flex justify-between gap-3"><span class="text-hami-muted">${escapeHTML(label)}</span><span class="text-right text-hami-text">${escapeHTML(v)}</span></div>`;
+  }
+
+  function openContractWindow(row){
+    const p = safeJsonParseMaybe(row.payload);
+    const merged = {
+      ...p,
+      signature_url: row.signature_url || p.signature_url || "",
+      signature_signed_at: p.signature_signed_at || "",
+      sign_time: p.sign_time || ""
+    };
+
+    const html = generateContractHTML(merged);
+    const w = window.open("", "_blank");
+    if (!w){ alert("請允許彈出視窗"); return; }
+    w.document.write(html);
+    w.document.close();
+  }
+
+  async function openDetail(id){
+    const row = agreements.find(x => x.id === id);
+    if (!row) return;
+
+    selectedAgreement = row;
+    const d = getAgreementDerived(row);
+    const payload = d.payload || {};
+    const owner = d.owner || {};
+    const pets = Array.isArray(d.pets) ? d.pets : [];
+
+    // ✅ 管理員判斷：不需要 role key，只看 email
+    const isAdmin = (currentUser?.email || "").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+
+    const status = row.status || "pending";
+    $("detailTitle").textContent = `${d.petNames}`;
+    $("detailSub").textContent = `ID：${row.id}`;
+
+    $("detailStatusBadge").className = statusBadgeClass(status);
+    $("detailStatusBadge").textContent = statusText(status);
+
+    $("detailRoleHint").textContent = isAdmin ? "（可編輯）" : "（只讀）";
+
+    // status buttons enable/disable
+    document.querySelectorAll('[data-status]').forEach(btn => {
+      btn.disabled = !isAdmin;
+      btn.classList.toggle("opacity-60", !isAdmin);
+    });
+
+    // note
+    $("detailNote").value = (row.admin_note || "").toString();
+    $("detailNote").disabled = !isAdmin;
+    $("noteSaving").classList.add("hidden");
+    $("noteSaved").classList.add("hidden");
+
+    // ✅ Owner ALL（依 index payload）
+    $("detailOwnerAll").innerHTML = renderOwnerAll(owner, row);
+
+    // ✅ Pets ALL
+    $("detailPetsCount").textContent = `${pets.length} 隻`;
+
+    const petsWrap = $("detailPetsAll");
+    petsWrap.innerHTML = "";
+    pets.forEach((p, idx) => {
+      petsWrap.insertAdjacentHTML("beforeend", renderPetAll(p, idx));
+    });
+
+    // total amount (>=2 show)
+    if (pets.length >= 2){
+      $("detailTotalWrap").classList.remove("hidden");
+      $("detailTotalAmount").textContent = `NT$ ${nfTWD(d.totalAmount)}`;
+    } else {
+      $("detailTotalWrap").classList.add("hidden");
+    }
+
+    // signature (only show)
+    const sigUrl = row.signature_url || payload?.signature_url || "";
+    $("detailSignatureImg").src = sigUrl || "";
+
+    const signedAtIso = payload?.signature_signed_at || payload?.sign_time || row.created_at;
+    $("detailSignatureTime").textContent = formatTWDateTime(signedAtIso);
+
+    // actions
+    $("btnOpenContract").onclick = () => openContractWindow(row);
+
+    openModal("detailModal");
+  }
+
+  async function updateStatus(newStatus){
+    if (!selectedAgreement) return;
+    if (currentRole !== "admin") return;
+
+    const id = selectedAgreement.id;
+
+    const { error } = await sb
+      .from(TABLE)
+      .update({ status: newStatus })
+      .eq("id", id);
+
+    if (error){
+      toast("更新狀態失敗：" + (error.message || "error"));
+      return;
+    }
+
+    // local update
+    selectedAgreement.status = newStatus;
+    const idx = agreements.findIndex(x => x.id === id);
+    if (idx >= 0) agreements[idx].status = newStatus;
+
+    $("detailStatusBadge").className = statusBadgeClass(newStatus);
+    $("detailStatusBadge").textContent = statusText(newStatus);
+
+    renderAgreements();
+    renderCustomers();
+    toast("已更新狀態");
+  }
+
+  async function updateNote(noteText){
+    if (!selectedAgreement) return;
+    if (currentRole !== "admin") return;
+
+    $("noteSaving").classList.remove("hidden");
+    $("noteSaved").classList.add("hidden");
+
+    const id = selectedAgreement.id;
+    const { error } = await sb
+      .from(TABLE)
+      .update({ admin_note: noteText })
+      .eq("id", id);
+
+    $("noteSaving").classList.add("hidden");
+
+    if (error){
+      toast("儲存備註失敗：" + (error.message || "error"));
+      return;
+    }
+
+    $("noteSaved").classList.remove("hidden");
+    setTimeout(() => $("noteSaved").classList.add("hidden"), 1200);
+
+    selectedAgreement.admin_note = noteText;
+    const idx = agreements.findIndex(x => x.id === id);
+    if (idx >= 0) agreements[idx].admin_note = noteText;
+
+    renderAgreements();
+    renderCustomers();
+  }
+
+  async function refreshData(){
+    try{
+      $("btnRefresh").disabled = true;
+      $("btnRefresh").classList.add("opacity-60");
+      await fetchAgreements();
+      renderAgreements();
+      renderCustomers();
+      lucide.createIcons();
+    } catch (e){
+      console.error(e);
+      toast("讀取失敗：" + (e?.message || "error"));
+    } finally {
+      $("btnRefresh").disabled = false;
+      $("btnRefresh").classList.remove("opacity-60");
+    }
+  }
+
+  // =========================
+  // Tabs / Filters
+  // =========================
+  function syncFilterUI(){
+    const onlyIncomplete = $("chkIncomplete").checked;
+    $("filterText").textContent = onlyIncomplete ? "只看未完成" : "顯示全部";
+    $("btnToggleIncomplete").textContent = onlyIncomplete ? "切換顯示全部" : "切換只看未完成";
+  }
+
+  function setTab(tab){
+    const baseOn = "btn-jelly py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2";
+    const active = " bg-[#4A3C33] text-white border border-black/10";
+    const inactive = " bg-white/70 backdrop-blur text-hami-text border border-hami-line";
+
+    if (tab === "customers"){
+      $("tabCustomers").className = baseOn + active;
+      $("tabAgreements").className = baseOn + inactive;
+      $("customersPanel").classList.remove("hidden");
+      $("agreementsPanel").classList.add("hidden");
+      renderCustomers();
+    } else {
+      $("tabAgreements").className = baseOn + active;
+      $("tabCustomers").className = baseOn + inactive;
+      $("agreementsPanel").classList.remove("hidden");
+      $("customersPanel").classList.add("hidden");
+      renderAgreements();
+    }
+    lucide.createIcons();
+  }
+
+  // =========================
+  // Events
+  // =========================
+  window.addEventListener("DOMContentLoaded", async () => {
+    // Login steps
+    const showPick = () => {
+      selectedLoginEmail = "";
+      setLoginError("");
+      $("loginStepPick").classList.remove("hidden");
+      $("loginStepPwd").classList.add("hidden");
+      $("loginPassword").value = "";
+    };
+
+    const showPwd = (role) => {
+      setLoginError("");
+      $("loginStepPick").classList.add("hidden");
+      $("loginStepPwd").classList.remove("hidden");
+      $("loginRolePill").textContent = role === "admin" ? "管理員模式" : "員工模式";
+      $("loginPassword").value = "";
+      $("loginPassword").focus();
+      lucide.createIcons();
+    };
+
+    $("btnPickAdmin").addEventListener("click", () => {
+      selectedLoginEmail = ADMIN_EMAIL;
+      showPwd("admin");
+    });
+    $("btnPickStaff").addEventListener("click", () => {
+      selectedLoginEmail = STAFF_EMAIL;
+      showPwd("staff");
+    });
+    $("btnSwitchRole").addEventListener("click", showPick);
+
+    $("btnLogin").addEventListener("click", async () => {
+      const pwd = $("loginPassword").value || "";
+      if (!selectedLoginEmail){
+        setLoginError("請先選擇 管理員 / 員工");
+        return;
+      }
+      if (!pwd){
+        setLoginError("請輸入密碼");
+        return;
+      }
+      await login(selectedLoginEmail, pwd);
+    });
+
+    $("loginPassword").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") $("btnLogin").click();
+    });
+
+    showPick();
+
+    // Topbar
+    $("btnSignOut").addEventListener("click", signOut);
+    $("btnRefresh").addEventListener("click", refreshData);
+
+    // 修改密碼（只有管理員會顯示按鈕）
+    $("btnChangePwd").addEventListener("click", openPwdModal);
+
+    // pwd modal
+    $("btnClosePwdModal").addEventListener("click", closePwdModal);
+    $("btnPwdCancel").addEventListener("click", closePwdModal);
+    $("btnPwdConfirm").addEventListener("click", handleChangePassword);
+
+    // target switch
+    $("pwdTargetAdmin").addEventListener("click", () => setPwdTarget("admin"));
+    $("pwdTargetStaff").addEventListener("click", () => setPwdTarget("staff"));
+
+    ["pwdOld","pwdNew","pwdConfirm"].forEach((id) => {
+      $(id).addEventListener("keydown", (e) => {
+        if (e.key === "Enter") handleChangePassword();
+      });
+    });
+
+    $("pwdModal").addEventListener("click", (e) => {
+      if (e.target === $("pwdModal")) closePwdModal();
+    });
+
+    // Tabs
+    $("tabAgreements").addEventListener("click", () => setTab("agreements"));
+    $("tabCustomers").addEventListener("click", () => setTab("customers"));
+
+    // Search
+    $("searchInput").addEventListener("input", () => {
+      if (!$("agreementsPanel").classList.contains("hidden")) renderAgreements();
+      if (!$("customersPanel").classList.contains("hidden")) renderCustomers();
+    });
+
+    // Filter toggle
+    $("btnToggleIncomplete").addEventListener("click", () => {
+      $("chkIncomplete").checked = !$("chkIncomplete").checked;
+      syncFilterUI();
+      renderAgreements();
+    });
+    $("chkIncomplete").addEventListener("change", () => {
+      syncFilterUI();
+      renderAgreements();
+    });
+    syncFilterUI();
+
+    // Customer modal close
+    $("btnCloseCustomerModal").addEventListener("click", () => closeModal("customerModal"));
+    $("customerModal").addEventListener("click", (e) => { if (e.target === $("customerModal")) closeModal("customerModal"); });
+
+    // Detail modal close
+    $("btnCloseDetail").addEventListener("click", () => closeModal("detailModal"));
+    $("detailModal").addEventListener("click", (e) => { if (e.target === $("detailModal")) closeModal("detailModal"); });
+
+    // Status buttons
+    document.querySelectorAll("[data-status]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const s = btn.getAttribute("data-status");
+        await updateStatus(s);
+      });
+    });
+
+    // Note autosave
+    $("detailNote").addEventListener("blur", async () => {
+      const v = ($("detailNote").value || "").toString();
+      await updateNote(v);
+    });
+
+    // boot
+    try{
+      await bootApp();
+      setTab("agreements");
+    } catch (e){
+      console.error(e);
+      $("viewLoading").classList.add("hidden");
+      showLogin();
+      toast("初始化失敗：" + (e?.message || "error"));
+    }
+
+    lucide.createIcons();
+  });
+</script>
+
+</body>
+</html>
