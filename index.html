@@ -416,7 +416,7 @@
   (function () {
     if (!("serviceWorker" in navigator)) return;
 
-    const SW_URL_FIXED = "./sw.js?v=5";
+    const SW_URL_FIXED = "./sw.js?v=6";
 
     const APP_VERSION =
       new URL(SW_URL_FIXED, window.location.href).searchParams.get("v") || "0";
@@ -495,7 +495,14 @@
   })();
 </script>
 
-  <script type="text/babel">
+  <script>
+    Babel.registerPreset("react-classic", {
+      presets: [
+        [Babel.availablePresets["react"], { "runtime": "classic" }]
+      ]
+    });
+  </script>
+  <script type="text/babel" data-presets="react-classic" data-plugins="transform-modules-commonjs">
     const { useMemo, useRef, useState, useEffect } = React;
 // =========================
 // ✅ Supabase 設定（Hami）
